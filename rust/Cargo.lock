@@ -18,6 +18,13 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 
 [[package]]
+name = "gdext_rust"
+version = "0.1.0"
+dependencies = [
+ "godot",
+]
+
+[[package]]
 name = "gdextension-api"
 version = "0.2.0"
 source = "git+https://github.com/godot-rust/godot4-prebuilt?branch=releases#6d902e8a6060007f4ab94cd78882247ae2558d96"
@@ -206,13 +213,6 @@ name = "regex-syntax"
 version = "0.8.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7a66a03ae7c801facd77a29370b4faec201768915ac14a721ba36f20bc9c209b"
-
-[[package]]
-name = "rust"
-version = "0.1.0"
-dependencies = [
- "godot",
-]
 
 [[package]]
 name = "syn"
