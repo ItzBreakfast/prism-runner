@@ -13,9 +13,11 @@ struct Player {
     left: bool,
     right: bool,
     jump: bool,
+    slide: bool,
 
     jumping: bool,
     falling: bool,
+    sliding: bool,
 
     base: Base<CharacterBody2D>,
 }
@@ -31,8 +33,10 @@ impl ICharacterBody2D for Player {
             left: false,
             right: false,
             jump: false,
+            slide: false,
             jumping: false,
             falling: false,
+            sliding: false,
             base,
         }
     }
@@ -43,6 +47,7 @@ impl ICharacterBody2D for Player {
         self.left = input.is_key_pressed(Key::A);
         self.right = input.is_key_pressed(Key::D);
         self.jump = input.is_key_pressed(Key::SPACE);
+        self.slide = input.is_key_pressed(Key::SHIFT);
     }
 
     fn physics_process(&mut self, delta: f64) {
@@ -66,6 +71,14 @@ impl ICharacterBody2D for Player {
             animated.set_animation("jump".into());
             velocity.y = -self.jump_power;
         }
+
+        // if self.slide {
+        //     self.sliding = true;
+        //
+        //     animated.set_animation("slide".into());
+        //     animated.connect(signal, callable);
+        //     velocity.x *= 5.;
+        // }
 
         if velocity.y > 0. {
             self.jumping = false;

@@ -1,4 +1,4 @@
-[gd_scene load_steps=27 format=3 uid="uid://dgsw5i7o6l4yk"]
+[gd_scene load_steps=33 format=3 uid="uid://dgsw5i7o6l4yk"]
 
 [ext_resource type="Texture2D" uid="uid://xvqfsp432sdo" path="res://assets/warrior.png" id="1_num4q"]
 
@@ -97,6 +97,30 @@ region = Rect2(0, 88, 69, 44)
 atlas = ExtResource("1_num4q")
 region = Rect2(69, 88, 69, 44)
 
+[sub_resource type="AtlasTexture" id="AtlasTexture_6rl15"]
+atlas = ExtResource("1_num4q")
+region = Rect2(69, 616, 69, 44)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_0jf8u"]
+atlas = ExtResource("1_num4q")
+region = Rect2(138, 616, 69, 44)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_tjsir"]
+atlas = ExtResource("1_num4q")
+region = Rect2(207, 616, 69, 44)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_l2dbw"]
+atlas = ExtResource("1_num4q")
+region = Rect2(276, 616, 69, 44)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ddy8x"]
+atlas = ExtResource("1_num4q")
+region = Rect2(345, 616, 69, 44)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_7uoar"]
+atlas = ExtResource("1_num4q")
+region = Rect2(0, 660, 69, 44)
+
 [sub_resource type="SpriteFrames" id="SpriteFrames_ovbcc"]
 animations = [{
 "frames": [{
@@ -187,6 +211,29 @@ animations = [{
 "loop": true,
 "name": &"run",
 "speed": 10.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_6rl15")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_0jf8u")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_tjsir")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_l2dbw")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ddy8x")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_7uoar")
+}],
+"loop": false,
+"name": &"slide",
+"speed": 5.0
 }]
 
 [node name="Player" type="Player"]
@@ -199,4 +246,6 @@ shape = SubResource("RectangleShape2D_kqafx")
 [node name="Animation" type="AnimatedSprite2D" parent="."]
 scale = Vector2(2.5, 2.5)
 sprite_frames = SubResource("SpriteFrames_ovbcc")
-animation = &"fall"
+animation = &"slide"
+frame = 5
+frame_progress = 1.0
