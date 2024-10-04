@@ -1,9 +1,41 @@
-[gd_scene load_steps=33 format=3 uid="uid://dgsw5i7o6l4yk"]
+[gd_scene load_steps=41 format=3 uid="uid://dgsw5i7o6l4yk"]
 
 [ext_resource type="Texture2D" uid="uid://xvqfsp432sdo" path="res://assets/warrior.png" id="1_num4q"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_kqafx"]
 size = Vector2(23, 42)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_7ta43"]
+atlas = ExtResource("1_num4q")
+region = Rect2(138, 484, 69, 44)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_k5jgh"]
+atlas = ExtResource("1_num4q")
+region = Rect2(207, 484, 69, 44)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_j66pj"]
+atlas = ExtResource("1_num4q")
+region = Rect2(276, 484, 69, 44)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ik3vn"]
+atlas = ExtResource("1_num4q")
+region = Rect2(345, 484, 69, 44)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_822qu"]
+atlas = ExtResource("1_num4q")
+region = Rect2(0, 528, 69, 44)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_qgmw3"]
+atlas = ExtResource("1_num4q")
+region = Rect2(69, 528, 69, 44)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_nml8i"]
+atlas = ExtResource("1_num4q")
+region = Rect2(138, 528, 69, 44)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_e255h"]
+atlas = ExtResource("1_num4q")
+region = Rect2(207, 528, 69, 44)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_nx0v1"]
 atlas = ExtResource("1_num4q")
@@ -123,6 +155,40 @@ region = Rect2(0, 660, 69, 44)
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_ovbcc"]
 animations = [{
+"frames": [],
+"loop": false,
+"name": &"attack",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_7ta43")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_k5jgh")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_j66pj")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ik3vn")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_822qu")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_qgmw3")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_nml8i")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_e255h")
+}],
+"loop": false,
+"name": &"dash",
+"speed": 5.0
+}, {
 "frames": [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_nx0v1")
@@ -247,5 +313,3 @@ shape = SubResource("RectangleShape2D_kqafx")
 scale = Vector2(2.5, 2.5)
 sprite_frames = SubResource("SpriteFrames_ovbcc")
 animation = &"slide"
-frame = 5
-frame_progress = 1.0

@@ -3,6 +3,7 @@ use godot::{
     global::{move_toward, Key},
     prelude::*,
 };
+use std::sync::{Arc, Mutex};
 
 #[derive(GodotClass)]
 #[class(base=CharacterBody2D)]
@@ -17,7 +18,7 @@ struct Player {
 
     jumping: bool,
     falling: bool,
-    sliding: bool,
+    sliding: Arc<Mutex<bool>>,
 
     base: Base<CharacterBody2D>,
 }
@@ -25,7 +26,7 @@ struct Player {
 #[godot_api]
 impl ICharacterBody2D for Player {
     fn init(base: Base<CharacterBody2D>) -> Self {
-        godot_print!("Hello, godot!");
+        godot_print!("실행 가능합니다!");
 
         Self {
             speed: 300.,
@@ -36,7 +37,7 @@ impl ICharacterBody2D for Player {
             slide: false,
             jumping: false,
             falling: false,
-            sliding: false,
+            sliding: Arc::new(Mutex::new(false)),
             base,
         }
     }
@@ -72,13 +73,19 @@ impl ICharacterBody2D for Player {
             velocity.y = -self.jump_power;
         }
 
-        // if self.slide {
-        //     self.sliding = true;
-        //
-        //     animated.set_animation("slide".into());
-        //     animated.connect(signal, callable);
-        //     velocity.x *= 5.;
-        // }
+        if self.slide {
+            *self.sliding.lock().unwrap() = true;
+
+            animated.set_animation("slide".into());
+            animated.connect(
+                "animation_finished".into(),
+                Callable::from_fn("slide_finished", |_| {
+                    *self.sliding.lock().unwrap() = false;
+                    Ok(Variant::nil())
+                }),
+            );
+            velocity.x *= 5.;
+        }
 
         if velocity.y > 0. {
             self.jumping = false;
