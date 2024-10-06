@@ -2,9 +2,6 @@
 
 [ext_resource type="Texture2D" uid="uid://xvqfsp432sdo" path="res://assets/warrior.png" id="1_num4q"]
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_kqafx"]
-size = Vector2(23, 42)
-
 [sub_resource type="AtlasTexture" id="AtlasTexture_7ta43"]
 atlas = ExtResource("1_num4q")
 region = Rect2(138, 484, 69, 44)
@@ -153,7 +150,7 @@ region = Rect2(345, 616, 69, 44)
 atlas = ExtResource("1_num4q")
 region = Rect2(0, 660, 69, 44)
 
-[sub_resource type="SpriteFrames" id="SpriteFrames_ovbcc"]
+[sub_resource type="SpriteFrames" id="SpriteFrames_eqchn"]
 animations = [{
 "frames": [],
 "loop": false,
@@ -187,7 +184,7 @@ animations = [{
 }],
 "loop": false,
 "name": &"dash",
-"speed": 5.0
+"speed": 10.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -302,14 +299,17 @@ animations = [{
 "speed": 5.0
 }]
 
-[node name="Player" type="Player"]
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_ajg5b"]
+size = Vector2(23, 42)
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-position = Vector2(-19, 11)
-scale = Vector2(2, 2)
-shape = SubResource("RectangleShape2D_kqafx")
+[node name="Player" type="Player"]
 
 [node name="Animation" type="AnimatedSprite2D" parent="."]
 scale = Vector2(2.5, 2.5)
-sprite_frames = SubResource("SpriteFrames_ovbcc")
+sprite_frames = SubResource("SpriteFrames_eqchn")
 animation = &"slide"
+
+[node name="CollisionShape2D2" type="CollisionShape2D" parent="."]
+position = Vector2(-19, 11)
+scale = Vector2(2, 2)
+shape = SubResource("RectangleShape2D_ajg5b")

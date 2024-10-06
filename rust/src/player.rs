@@ -7,14 +7,14 @@ use std::sync::{Arc, Mutex};
 
 #[derive(GodotClass)]
 #[class(base=CharacterBody2D)]
-struct Player {
+pub struct Player {
     speed: f32,
     jump_power: f32,
 
     left: bool,
     right: bool,
     jump: bool,
-    slide: bool,
+    slide: Arc<Mutex<bool>>,
 
     jumping: bool,
     falling: bool,
@@ -29,26 +29,31 @@ impl ICharacterBody2D for Player {
         godot_print!("실행 가능합니다!");
 
         Self {
-            speed: 300.,
+            speed: 450.,
             jump_power: 600.,
+
             left: false,
             right: false,
             jump: false,
-            slide: false,
+            slide: Arc::new(Mutex::new(false)),
+
             jumping: false,
             falling: false,
             sliding: Arc::new(Mutex::new(false)),
+
             base,
         }
     }
 
     fn input(&mut self, mut event: Gd<InputEvent>) {
         let input = Input::singleton();
+        let just_pressed = event.is_pressed() && !event.is_echo();
 
         self.left = input.is_key_pressed(Key::A);
         self.right = input.is_key_pressed(Key::D);
         self.jump = input.is_key_pressed(Key::SPACE);
-        self.slide = input.is_key_pressed(Key::SHIFT);
+
+        *self.slide.lock().unwrap() = input.is_key_pressed(Key::SHIFT) && just_pressed;
     }
 
     fn physics_process(&mut self, delta: f64) {
@@ -57,6 +62,7 @@ impl ICharacterBody2D for Player {
             .to::<f32>()
             / 35.;
 
+        let position = self.base().get_position();
         let mut velocity = self.base().get_velocity();
         let mut animated = self.base().get_node_as::<AnimatedSprite2D>("Animation");
 
@@ -66,25 +72,44 @@ impl ICharacterBody2D for Player {
             0.
         };
 
-        if self.jump && self.base().is_on_floor() {
-            self.jumping = true;
-
-            animated.set_animation("jump".into());
-            velocity.y = -self.jump_power;
-        }
-
-        if self.slide {
+        if *self.slide.lock().unwrap()
+            && !*self.sliding.lock().unwrap()
+            && !self.falling
+            && !self.jumping
+            && (self.left || self.right)
+        {
             *self.sliding.lock().unwrap() = true;
+
+            let slide = self.slide.clone();
+            let sliding = self.sliding.clone();
 
             animated.set_animation("slide".into());
             animated.connect(
                 "animation_finished".into(),
-                Callable::from_fn("slide_finished", |_| {
-                    *self.sliding.lock().unwrap() = false;
+                Callable::from_fn("slide_finished", move |_| {
+                    *slide.lock().unwrap() = false;
+                    *sliding.lock().unwrap() = false;
+
                     Ok(Variant::nil())
                 }),
             );
-            velocity.x *= 5.;
+
+            if self.left {
+                velocity.x = self.speed * -1.5;
+            }
+
+            if self.right {
+                velocity.x = self.speed * 1.5;
+            }
+        }
+
+        let sliding = *self.sliding.lock().unwrap();
+
+        if self.jump && self.base().is_on_floor() && !sliding {
+            self.jumping = true;
+
+            animated.set_animation("jump".into());
+            velocity.y = -self.jump_power;
         }
 
         if velocity.y > 0. {
@@ -98,7 +123,7 @@ impl ICharacterBody2D for Player {
             self.falling = false;
         }
 
-        if self.left {
+        if self.left && !sliding {
             animated.set_flip_h(true);
             velocity.x = -self.speed;
 
@@ -107,7 +132,7 @@ impl ICharacterBody2D for Player {
             }
         }
 
-        if self.right {
+        if self.right && !sliding {
             animated.set_flip_h(false);
             velocity.x = self.speed;
 
@@ -116,7 +141,7 @@ impl ICharacterBody2D for Player {
             }
         }
 
-        if !self.left && !self.right {
+        if !self.left && !self.right && !sliding {
             velocity.x = move_toward(velocity.x.into(), 0., self.speed.into()) as f32;
 
             if !self.jumping && !self.falling {

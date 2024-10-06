@@ -3,6 +3,7 @@
 use godot::prelude::*;
 
 mod camera;
+mod map;
 mod player;
 
 struct PrismRunner;
