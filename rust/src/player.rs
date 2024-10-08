@@ -15,10 +15,12 @@ pub struct Player {
     right: bool,
     jump: bool,
     slide: Arc<Mutex<bool>>,
+    dash: Arc<Mutex<bool>>,
 
     jumping: bool,
     falling: bool,
     sliding: Arc<Mutex<bool>>,
+    dashing: Arc<Mutex<bool>>,
 
     base: Base<CharacterBody2D>,
 }
@@ -36,10 +38,12 @@ impl ICharacterBody2D for Player {
             right: false,
             jump: false,
             slide: Arc::new(Mutex::new(false)),
+            dash: Arc::new(Mutex::new(false)),
 
             jumping: false,
             falling: false,
             sliding: Arc::new(Mutex::new(false)),
+            dashing: Arc::new(Mutex::new(false)),
 
             base,
         }
@@ -54,6 +58,7 @@ impl ICharacterBody2D for Player {
         self.jump = input.is_key_pressed(Key::SPACE);
 
         *self.slide.lock().unwrap() = input.is_key_pressed(Key::SHIFT) && just_pressed;
+        *self.dash.lock().unwrap() = input.is_key_pressed(Key::CTRL) && just_pressed;
     }
 
     fn physics_process(&mut self, delta: f64) {
@@ -72,8 +77,27 @@ impl ICharacterBody2D for Player {
             0.
         };
 
+        if self.left && !*self.sliding.lock().unwrap() && !*self.dashing.lock().unwrap() {
+            animated.set_flip_h(true);
+            velocity.x = -self.speed;
+
+            if !self.jumping && !self.falling {
+                animated.set_animation("run".into());
+            }
+        }
+
+        if self.right && !*self.sliding.lock().unwrap() && !*self.dashing.lock().unwrap() {
+            animated.set_flip_h(false);
+            velocity.x = self.speed;
+
+            if !self.jumping && !self.falling {
+                animated.set_animation("run".into());
+            }
+        }
+
         if *self.slide.lock().unwrap()
             && !*self.sliding.lock().unwrap()
+            && !*self.dashing.lock().unwrap()
             && !self.falling
             && !self.jumping
             && (self.left || self.right)
@@ -103,9 +127,44 @@ impl ICharacterBody2D for Player {
             }
         }
 
-        let sliding = *self.sliding.lock().unwrap();
+        if *self.dash.lock().unwrap()
+            && !*self.dashing.lock().unwrap()
+            && !*self.sliding.lock().unwrap()
+            && !self.falling
+            && !self.jumping
+            && (self.left || self.right)
+        {
+            *self.dashing.lock().unwrap() = true;
 
-        if self.jump && self.base().is_on_floor() && !sliding {
+            let dash = self.dash.clone();
+            let dashing = self.dashing.clone();
+
+            animated.set_animation("dash".into());
+            animated.connect(
+                "animation_finished".into(),
+                Callable::from_fn("dash_finished", move |_| {
+                    *dash.lock().unwrap() = false;
+                    *dashing.lock().unwrap() = false;
+
+                    // TODO: Make it plays "dash_finished" here.
+
+                    Ok(Variant::nil())
+                }),
+            );
+
+            if self.left {
+                velocity.x = self.speed * -2.;
+            }
+
+            if self.right {
+                velocity.x = self.speed * 2.;
+            }
+        }
+
+        let sliding = *self.sliding.lock().unwrap();
+        let dashing = *self.dashing.lock().unwrap();
+
+        if self.jump && self.base().is_on_floor() && !sliding && !dashing {
             self.jumping = true;
 
             animated.set_animation("jump".into());
@@ -123,25 +182,7 @@ impl ICharacterBody2D for Player {
             self.falling = false;
         }
 
-        if self.left && !sliding {
-            animated.set_flip_h(true);
-            velocity.x = -self.speed;
-
-            if !self.jumping && !self.falling {
-                animated.set_animation("run".into());
-            }
-        }
-
-        if self.right && !sliding {
-            animated.set_flip_h(false);
-            velocity.x = self.speed;
-
-            if !self.jumping && !self.falling {
-                animated.set_animation("run".into());
-            }
-        }
-
-        if !self.left && !self.right && !sliding {
+        if !self.left && !self.right && !sliding && !dashing {
             velocity.x = move_toward(velocity.x.into(), 0., self.speed.into()) as f32;
 
             if !self.jumping && !self.falling {
