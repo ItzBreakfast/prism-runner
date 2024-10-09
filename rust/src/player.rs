@@ -6,59 +6,79 @@ use godot::{
 use std::sync::{Arc, Mutex};
 
 #[derive(GodotClass)]
-#[class(base=CharacterBody2D)]
+#[class(init, base=CharacterBody2D)]
 pub struct Player {
+    #[init(val = 450.)]
     speed: f32,
+    #[init(val = 600.)]
     jump_power: f32,
 
     left: bool,
     right: bool,
     jump: bool,
-    slide: Arc<Mutex<bool>>,
-    dash: Arc<Mutex<bool>>,
+    slide: bool,
+    dash: bool,
+    basic_attack: bool,
 
     jumping: bool,
     falling: bool,
-    sliding: Arc<Mutex<bool>>,
-    dashing: Arc<Mutex<bool>>,
+    sliding: bool,
+    dashing: bool,
+    dash_finishing: bool,
+    basic_attacking: bool,
 
     base: Base<CharacterBody2D>,
 }
 
 #[godot_api]
-impl ICharacterBody2D for Player {
-    fn init(base: Base<CharacterBody2D>) -> Self {
-        godot_print!("실행 가능합니다!");
+impl Player {
+    #[func]
+    fn on_animation_finished(&mut self) {
+        let mut animated = self.base().get_node_as::<AnimatedSprite2D>("Animation");
 
-        Self {
-            speed: 450.,
-            jump_power: 600.,
+        let animation = animated.get_animation();
 
-            left: false,
-            right: false,
-            jump: false,
-            slide: Arc::new(Mutex::new(false)),
-            dash: Arc::new(Mutex::new(false)),
+        if animation == "slide".into() {
+            self.slide = false;
+            self.sliding = false;
+        }
 
-            jumping: false,
-            falling: false,
-            sliding: Arc::new(Mutex::new(false)),
-            dashing: Arc::new(Mutex::new(false)),
+        if animation == "dash".into() {
+            self.dash = false;
+            self.dashing = false;
+            self.dash_finishing = true;
 
-            base,
+            animated.set_animation("dash_finished".into());
+        }
+
+        if animation == "dash_finished".into() {
+            self.dash_finishing = false;
+        }
+
+        if animation == "basic_attack".into() {
+            self.basic_attack = false;
+            self.basic_attacking = false;
         }
     }
+}
 
+#[godot_api]
+impl ICharacterBody2D for Player {
     fn input(&mut self, mut event: Gd<InputEvent>) {
         let input = Input::singleton();
-        let just_pressed = event.is_pressed() && !event.is_echo();
 
         self.left = input.is_key_pressed(Key::A);
         self.right = input.is_key_pressed(Key::D);
         self.jump = input.is_key_pressed(Key::SPACE);
 
-        *self.slide.lock().unwrap() = input.is_key_pressed(Key::SHIFT) && just_pressed;
-        *self.dash.lock().unwrap() = input.is_key_pressed(Key::CTRL) && just_pressed;
+        self.slide = input.is_action_just_pressed("slide".into());
+        self.dash = input.is_action_just_pressed("dash".into());
+
+        self.basic_attack = input.is_action_just_pressed("basic_attack".into());
+
+        if self.slide || self.dash || self.basic_attack {
+            self.dash_finishing = false;
+        }
     }
 
     fn physics_process(&mut self, delta: f64) {
@@ -77,7 +97,9 @@ impl ICharacterBody2D for Player {
             0.
         };
 
-        if self.left && !*self.sliding.lock().unwrap() && !*self.dashing.lock().unwrap() {
+        if self.left && !self.sliding && !self.dashing && !self.basic_attacking {
+            self.dash_finishing = false;
+
             animated.set_flip_h(true);
             velocity.x = -self.speed;
 
@@ -86,7 +108,9 @@ impl ICharacterBody2D for Player {
             }
         }
 
-        if self.right && !*self.sliding.lock().unwrap() && !*self.dashing.lock().unwrap() {
+        if self.right && !self.sliding && !self.dashing && !self.basic_attacking {
+            self.dash_finishing = false;
+
             animated.set_flip_h(false);
             velocity.x = self.speed;
 
@@ -95,62 +119,36 @@ impl ICharacterBody2D for Player {
             }
         }
 
-        if *self.slide.lock().unwrap()
-            && !*self.sliding.lock().unwrap()
-            && !*self.dashing.lock().unwrap()
+        if self.slide
+            && !self.sliding
+            && !self.dashing
             && !self.falling
             && !self.jumping
+            && !self.basic_attacking
             && (self.left || self.right)
         {
-            *self.sliding.lock().unwrap() = true;
-
-            let slide = self.slide.clone();
-            let sliding = self.sliding.clone();
+            self.sliding = true;
 
             animated.set_animation("slide".into());
-            animated.connect(
-                "animation_finished".into(),
-                Callable::from_fn("slide_finished", move |_| {
-                    *slide.lock().unwrap() = false;
-                    *sliding.lock().unwrap() = false;
-
-                    Ok(Variant::nil())
-                }),
-            );
 
             if self.left {
-                velocity.x = self.speed * -1.5;
+                velocity.x = self.speed * -1.25;
             }
 
             if self.right {
-                velocity.x = self.speed * 1.5;
+                velocity.x = self.speed * 1.25;
             }
         }
 
-        if *self.dash.lock().unwrap()
-            && !*self.dashing.lock().unwrap()
-            && !*self.sliding.lock().unwrap()
-            && !self.falling
-            && !self.jumping
+        if self.dash
+            && !self.dashing
+            && !self.sliding
+            && !self.basic_attacking
             && (self.left || self.right)
         {
-            *self.dashing.lock().unwrap() = true;
-
-            let dash = self.dash.clone();
-            let dashing = self.dashing.clone();
+            self.dashing = true;
 
             animated.set_animation("dash".into());
-            animated.connect(
-                "animation_finished".into(),
-                Callable::from_fn("dash_finished", move |_| {
-                    *dash.lock().unwrap() = false;
-                    *dashing.lock().unwrap() = false;
-
-                    // TODO: Make it plays "dash_finished" here.
-
-                    Ok(Variant::nil())
-                }),
-            );
 
             if self.left {
                 velocity.x = self.speed * -2.;
@@ -161,31 +159,42 @@ impl ICharacterBody2D for Player {
             }
         }
 
-        let sliding = *self.sliding.lock().unwrap();
-        let dashing = *self.dashing.lock().unwrap();
+        if self.basic_attack && !self.sliding && !self.dashing && !self.falling && !self.jumping {
+            self.basic_attacking = true;
 
-        if self.jump && self.base().is_on_floor() && !sliding && !dashing {
-            self.jumping = true;
-
-            animated.set_animation("jump".into());
-            velocity.y = -self.jump_power;
+            animated.set_animation("basic_attack".into());
         }
 
-        if velocity.y > 0. {
+        if velocity.y > 0. && !self.dashing {
             self.jumping = false;
             self.falling = true;
+            self.dash_finishing = false;
 
             animated.set_animation("fall".into());
         }
 
         if self.base().is_on_floor() {
+            self.jumping = false;
             self.falling = false;
         }
 
-        if !self.left && !self.right && !sliding && !dashing {
+        if self.jump
+            && self.base().is_on_floor()
+            && !self.sliding
+            && !self.dashing
+            && !self.basic_attacking
+        {
+            self.jumping = true;
+            self.dash_finishing = false;
+
+            animated.set_animation("jump".into());
+            velocity.y = -self.jump_power;
+        }
+
+        if ((!self.left && !self.right) || self.basic_attacking) && !self.sliding && !self.dashing {
             velocity.x = move_toward(velocity.x.into(), 0., self.speed.into()) as f32;
 
-            if !self.jumping && !self.falling {
+            if !self.jumping && !self.falling && !self.dash_finishing && !self.basic_attacking {
                 animated.set_animation("idle".into());
             }
         }
