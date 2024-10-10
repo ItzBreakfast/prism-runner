@@ -9,11 +9,11 @@ pub struct SideCamera {
 
 #[godot_api]
 impl ICamera2D for SideCamera {
-    fn physics_process(&mut self, delta: f64) {
+    fn physics_process(&mut self, _delta: f64) {
         let parent = self.base_mut().get_parent().unwrap();
 
         let position = self.base().get_position();
-        let mut player: Gd<Player> = parent.get_node_as("Player");
+        let player: Gd<Player> = parent.get_node_as("Player");
 
         let player_position = player.get_position() + Vector2::new(0., -200.);
         self.base_mut()

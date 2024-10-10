@@ -1,4 +1,4 @@
-[gd_scene load_steps=53 format=3 uid="uid://dgsw5i7o6l4yk"]
+[gd_scene load_steps=67 format=3 uid="uid://dgsw5i7o6l4yk"]
 
 [ext_resource type="Texture2D" uid="uid://xvqfsp432sdo" path="res://asset/warrior.png" id="1_num4q"]
 
@@ -65,6 +65,58 @@ region = Rect2(276, 484, 69, 44)
 [sub_resource type="AtlasTexture" id="AtlasTexture_ik3vn"]
 atlas = ExtResource("1_num4q")
 region = Rect2(345, 484, 69, 44)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_0qlu3"]
+atlas = ExtResource("1_num4q")
+region = Rect2(138, 484, 69, 44)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_kk8jp"]
+atlas = ExtResource("1_num4q")
+region = Rect2(207, 484, 69, 44)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_kj42y"]
+atlas = ExtResource("1_num4q")
+region = Rect2(276, 484, 69, 44)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ndrxk"]
+atlas = ExtResource("1_num4q")
+region = Rect2(345, 484, 69, 44)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_r2egk"]
+atlas = ExtResource("1_num4q")
+region = Rect2(0, 528, 69, 44)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_c1obk"]
+atlas = ExtResource("1_num4q")
+region = Rect2(276, 528, 69, 44)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ncia1"]
+atlas = ExtResource("1_num4q")
+region = Rect2(345, 528, 69, 44)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_c4m32"]
+atlas = ExtResource("1_num4q")
+region = Rect2(0, 572, 69, 44)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_hywes"]
+atlas = ExtResource("1_num4q")
+region = Rect2(69, 572, 69, 44)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_m1kh1"]
+atlas = ExtResource("1_num4q")
+region = Rect2(138, 572, 69, 44)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_a4bsc"]
+atlas = ExtResource("1_num4q")
+region = Rect2(207, 572, 69, 44)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_8i1ws"]
+atlas = ExtResource("1_num4q")
+region = Rect2(276, 572, 69, 44)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_pamoo"]
+atlas = ExtResource("1_num4q")
+region = Rect2(345, 572, 69, 44)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_k4wbv"]
 atlas = ExtResource("1_num4q")
@@ -174,6 +226,10 @@ region = Rect2(0, 88, 69, 44)
 atlas = ExtResource("1_num4q")
 region = Rect2(69, 88, 69, 44)
 
+[sub_resource type="AtlasTexture" id="AtlasTexture_h1pa6"]
+atlas = ExtResource("1_num4q")
+region = Rect2(0, 616, 69, 44)
+
 [sub_resource type="AtlasTexture" id="AtlasTexture_6rl15"]
 atlas = ExtResource("1_num4q")
 region = Rect2(69, 616, 69, 44)
@@ -256,6 +312,55 @@ animations = [{
 }],
 "loop": false,
 "name": &"dash",
+"speed": 10.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_0qlu3")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_kk8jp")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_kj42y")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ndrxk")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_r2egk")
+}],
+"loop": false,
+"name": &"dash_attack",
+"speed": 10.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_c1obk")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ncia1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_c4m32")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_hywes")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_m1kh1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_a4bsc")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_8i1ws")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_pamoo")
+}],
+"loop": false,
+"name": &"dash_attack_finished",
 "speed": 10.0
 }, {
 "frames": [{
@@ -366,6 +471,9 @@ animations = [{
 }, {
 "frames": [{
 "duration": 1.0,
+"texture": SubResource("AtlasTexture_h1pa6")
+}, {
+"duration": 1.0,
 "texture": SubResource("AtlasTexture_6rl15")
 }, {
 "duration": 1.0,
@@ -396,7 +504,7 @@ size = Vector2(23, 42)
 [node name="Animation" type="AnimatedSprite2D" parent="."]
 scale = Vector2(2.5, 2.5)
 sprite_frames = SubResource("SpriteFrames_eqchn")
-animation = &"dash_finished"
+animation = &"basic_attack"
 
 [node name="CollisionShape2D2" type="CollisionShape2D" parent="."]
 position = Vector2(-19, 11)

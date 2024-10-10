@@ -22,9 +22,9 @@ impl INode2D for Map {
         );
     }
 
-    fn physics_process(&mut self, delta: f64) {
+    fn physics_process(&mut self, _delta: f64) {
         let parent = self.base_mut().get_parent().unwrap();
-        let mut camera: Gd<SideCamera> = parent.get_node_as("SideCamera");
+        let camera: Gd<SideCamera> = parent.get_node_as("SideCamera");
 
         self.base_mut()
             .set_position(Vector2::new(camera.get_position().x - 1000., 325.));
