@@ -20,6 +20,7 @@ pub struct Player {
     basic_attack: bool,
     dash_attack: bool,
     aura_attack: bool,
+    fall_attack: bool,
 
     flipped: bool,
     jumping: bool,
@@ -32,6 +33,7 @@ pub struct Player {
     dash_attacking: bool,
     dash_attack_finishing: bool,
     aura_attacking: bool,
+    fall_attacking: bool,
 
     base: Base<CharacterBody2D>,
 }
@@ -97,6 +99,11 @@ impl Player {
             self.aura_attack = false;
             self.aura_attacking = false;
         }
+
+        if animation == "fall_attack".into() {
+            self.fall_attack = false;
+            self.fall_attacking = false;
+        }
     }
 }
 
@@ -115,6 +122,7 @@ impl ICharacterBody2D for Player {
         self.basic_attack = input.is_action_just_pressed("basic_attack".into());
         self.dash_attack = input.is_action_just_pressed("dash_attack".into());
         self.aura_attack = input.is_action_just_pressed("aura_attack".into());
+        self.fall_attack = input.is_action_just_pressed("fall_attack".into());
 
         if self.slide || self.dash || self.basic_attack || self.aura_attack {
             self.dash_finishing = false;
@@ -136,137 +144,102 @@ impl ICharacterBody2D for Player {
             0.
         };
 
-        if self.left
+        if (self.left || self.right)
             && !self.sliding
             && !self.dashing
             && !self.basic_attacking
             && !self.dash_attacking
             && !self.dash_attack_finishing
             && !self.aura_attacking
+            && !self.fall_attacking
         {
-            self.flipped = true;
-            self.dash_finishing = false;
-
-            animated.set_flip_h(true);
-            velocity.x = -self.speed;
-
-            if !self.jumping && !self.falling {
-                self.play_animation("run".into());
-            }
-        }
-
-        if self.right
-            && !self.sliding
-            && !self.dashing
-            && !self.basic_attacking
-            && !self.dash_attacking
-            && !self.dash_attack_finishing
-            && !self.aura_attacking
-        {
-            self.flipped = false;
-            self.dash_finishing = false;
-
-            animated.set_flip_h(false);
-            velocity.x = self.speed;
-
-            if !self.jumping && !self.falling {
-                self.play_animation("run".into());
-            }
-        }
-
-        if self.slide
-            && !self.sliding
-            && !self.dashing
-            && !self.falling
-            && !self.jumping
-            && !self.basic_attacking
-            && !self.dash_attacking
-            && !self.dash_attack_finishing
-            && !self.aura_attacking
-            && (self.left || self.right)
-        {
-            self.sliding = true;
-
-            self.play_animation("slide".into());
-
             if self.left {
-                velocity.x = self.speed * -1.25;
+                self.flipped = true;
+                self.dash_finishing = false;
+
+                animated.set_flip_h(true);
+                velocity.x = -self.speed;
+
+                if !self.jumping && !self.falling {
+                    self.play_animation("run".into());
+                }
             }
 
             if self.right {
-                velocity.x = self.speed * 1.25;
+                self.flipped = false;
+                self.dash_finishing = false;
+
+                animated.set_flip_h(false);
+                velocity.x = self.speed;
+
+                if !self.jumping && !self.falling {
+                    self.play_animation("run".into());
+                }
+            }
+
+            if self.slide && !self.falling && !self.jumping {
+                self.sliding = true;
+
+                self.play_animation("slide".into());
+
+                if self.left {
+                    velocity.x = self.speed * -1.25;
+                }
+
+                if self.right {
+                    velocity.x = self.speed * 1.25;
+                }
+            }
+
+            if self.dash && !self.dashed {
+                self.dashed = true;
+                self.dashing = true;
+
+                self.play_animation("dash".into());
+
+                if self.left {
+                    velocity.x = self.speed * -2.;
+                }
+
+                if self.right {
+                    velocity.x = self.speed * 2.;
+                }
             }
         }
 
-        if self.dash
-            && !self.dashed
-            && !self.dashing
-            && !self.sliding
-            && !self.basic_attacking
-            && !self.dash_attacking
-            && !self.dash_attack_finishing
-            && !self.aura_attacking
-            && (self.left || self.right)
-        {
-            self.dashed = true;
-            self.dashing = true;
-
-            self.play_animation("dash".into());
-
-            if self.left {
-                velocity.x = self.speed * -2.;
-            }
-
-            if self.right {
-                velocity.x = self.speed * 2.;
-            }
-        }
-
-        if self.basic_attack
-            && !self.basic_attacking
-            && !self.jumping
-            && !self.falling
-            && !self.sliding
-            && !self.dashing
-            && !self.dash_attacking
-            && !self.dash_attack_finishing
-            && !self.aura_attacking
-        {
-            self.basic_attacking = true;
-
-            self.play_animation("basic_attack".into());
-        }
-
-        if self.dash_attack
-            && !self.dash_attacking
-            && !self.dash_attack_finishing
-            && !self.jumping
-            && !self.falling
-            && !self.sliding
-            && !self.dashing
-            && !self.basic_attacking
-            && !self.aura_attacking
-        {
-            self.dash_attacking = true;
-
-            self.play_animation("dash_attack".into());
-        }
-
-        if self.aura_attack
-            && !self.aura_attacking
-            && !self.jumping
+        if !self.jumping
             && !self.falling
             && !self.sliding
             && !self.dashing
             && !self.basic_attacking
             && !self.dash_attacking
             && !self.dash_attack_finishing
+            && !self.aura_attacking
+            && !self.fall_attacking
         {
-            self.aura_attack = false; // TODO: Remove this or just don't, since i don't have any idea
-                                      // that this is working or not.
-            self.aura_attacking = true;
+            if self.basic_attack {
+                self.basic_attacking = true;
 
-            self.play_animation("aura_attack".into());
+                self.play_animation("basic_attack".into());
+            }
+
+            if self.dash_attack {
+                self.dash_attacking = true;
+
+                self.play_animation("dash_attack".into());
+            }
+
+            if self.aura_attack {
+                self.aura_attacking = true;
+
+                self.play_animation("aura_attack".into());
+            }
+
+            if self.fall_attack {
+                self.fall_attacking = true;
+
+                self.play_animation("fall_attack".into());
+            }
         }
 
         if self.dash_attacking {
@@ -299,6 +272,7 @@ impl ICharacterBody2D for Player {
             && !self.dash_attacking
             && !self.dash_attack_finishing
             && !self.aura_attacking
+            && !self.fall_attacking
         {
             self.jumping = true;
             self.dash_finishing = false;
@@ -314,6 +288,7 @@ impl ICharacterBody2D for Player {
             && !self.sliding
             && !self.dashing
             && !self.dash_attacking
+            && !self.fall_attacking
         {
             velocity.x = move_toward(velocity.x.into(), 0., self.speed.into()) as f32;
 

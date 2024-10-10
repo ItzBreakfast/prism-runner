@@ -1,4 +1,4 @@
-[gd_scene load_steps=76 format=3 uid="uid://dgsw5i7o6l4yk"]
+[gd_scene load_steps=79 format=3 uid="uid://dgsw5i7o6l4yk"]
 
 [ext_resource type="Texture2D" uid="uid://xvqfsp432sdo" path="res://asset/warrior.png" id="1_num4q"]
 [ext_resource type="Texture2D" uid="uid://cnk3okdwkcv7w" path="res://asset/Warrior_SheetnoEffect.png" id="2_lgq1r"]
@@ -182,6 +182,18 @@ region = Rect2(345, 308, 69, 44)
 [sub_resource type="AtlasTexture" id="AtlasTexture_2x3lp"]
 atlas = ExtResource("1_num4q")
 region = Rect2(0, 352, 69, 44)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_r1vwh"]
+atlas = ExtResource("2_lgq1r")
+region = Rect2(138, 616, 69, 44)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_afrch"]
+atlas = ExtResource("2_lgq1r")
+region = Rect2(207, 616, 69, 44)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_wtrhd"]
+atlas = ExtResource("2_lgq1r")
+region = Rect2(276, 616, 69, 44)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_2iafv"]
 atlas = ExtResource("1_num4q")
@@ -461,6 +473,20 @@ animations = [{
 }, {
 "frames": [{
 "duration": 1.0,
+"texture": SubResource("AtlasTexture_r1vwh")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_afrch")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_wtrhd")
+}],
+"loop": true,
+"name": &"fall_attack",
+"speed": 20.0
+}, {
+"frames": [{
+"duration": 1.0,
 "texture": SubResource("AtlasTexture_2iafv")
 }, {
 "duration": 1.0,
@@ -566,7 +592,8 @@ size = Vector2(23, 42)
 [node name="Animation" type="AnimatedSprite2D" parent="."]
 scale = Vector2(2.5, 2.5)
 sprite_frames = SubResource("SpriteFrames_eqchn")
-animation = &"basic_attack"
+animation = &"fall_attack"
+frame_progress = 0.205876
 
 [node name="CollisionShape2D2" type="CollisionShape2D" parent="."]
 position = Vector2(-19, 11)
