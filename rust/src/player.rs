@@ -38,11 +38,13 @@ pub struct Player {
 
 #[godot_api]
 impl Player {
-    fn set_animation(&mut self, name: StringName) {
+    fn play_animation(&mut self, name: StringName) {
         let mut animated = self.base().get_node_as::<AnimatedSprite2D>("Animation");
 
         self.on_animation_changed(animated.get_animation(), name.clone());
+
         animated.set_animation(name);
+        animated.play();
     }
 
     fn on_animation_changed(&mut self, old: StringName, _new: StringName) {
@@ -67,7 +69,7 @@ impl Player {
             self.dashing = false;
             self.dash_finishing = true;
 
-            self.set_animation("dash_finished".into());
+            self.play_animation("dash_finished".into());
         }
 
         if animation == "dash_finished".into() {
@@ -84,7 +86,7 @@ impl Player {
             self.dash_attacking = false;
             self.dash_attack_finishing = true;
 
-            self.set_animation("dash_attack_finished".into());
+            self.play_animation("dash_attack_finished".into());
         }
 
         if animation == "dash_attack_finished".into() {
@@ -149,7 +151,7 @@ impl ICharacterBody2D for Player {
             velocity.x = -self.speed;
 
             if !self.jumping && !self.falling {
-                self.set_animation("run".into());
+                self.play_animation("run".into());
             }
         }
 
@@ -168,7 +170,7 @@ impl ICharacterBody2D for Player {
             velocity.x = self.speed;
 
             if !self.jumping && !self.falling {
-                self.set_animation("run".into());
+                self.play_animation("run".into());
             }
         }
 
@@ -185,7 +187,7 @@ impl ICharacterBody2D for Player {
         {
             self.sliding = true;
 
-            self.set_animation("slide".into());
+            self.play_animation("slide".into());
 
             if self.left {
                 velocity.x = self.speed * -1.25;
@@ -209,7 +211,7 @@ impl ICharacterBody2D for Player {
             self.dashed = true;
             self.dashing = true;
 
-            self.set_animation("dash".into());
+            self.play_animation("dash".into());
 
             if self.left {
                 velocity.x = self.speed * -2.;
@@ -230,26 +232,24 @@ impl ICharacterBody2D for Player {
             && !self.dash_attack_finishing
             && !self.aura_attacking
         {
-            self.basic_attack = false; // TODO: Remove this or just don't, since i don't have any idea
-                                       // that this is working or not.
             self.basic_attacking = true;
 
-            self.set_animation("basic_attack".into());
+            self.play_animation("basic_attack".into());
         }
 
         if self.dash_attack
             && !self.dash_attacking
+            && !self.dash_attack_finishing
             && !self.jumping
             && !self.falling
             && !self.sliding
             && !self.dashing
             && !self.basic_attacking
-            && !self.dash_attack_finishing
             && !self.aura_attacking
         {
             self.dash_attacking = true;
 
-            self.set_animation("dash_attack".into());
+            self.play_animation("dash_attack".into());
         }
 
         if self.aura_attack
@@ -258,6 +258,7 @@ impl ICharacterBody2D for Player {
             && !self.falling
             && !self.sliding
             && !self.dashing
+            && !self.basic_attacking
             && !self.dash_attacking
             && !self.dash_attack_finishing
         {
@@ -265,7 +266,7 @@ impl ICharacterBody2D for Player {
                                       // that this is working or not.
             self.aura_attacking = true;
 
-            self.set_animation("aura_attack".into());
+            self.play_animation("aura_attack".into());
         }
 
         if self.dash_attacking {
@@ -281,7 +282,7 @@ impl ICharacterBody2D for Player {
             self.falling = true;
             self.dash_finishing = false;
 
-            self.set_animation("fall".into());
+            self.play_animation("fall".into());
         }
 
         if self.base().is_on_floor() {
@@ -297,11 +298,12 @@ impl ICharacterBody2D for Player {
             && !self.basic_attacking
             && !self.dash_attacking
             && !self.dash_attack_finishing
+            && !self.aura_attacking
         {
             self.jumping = true;
             self.dash_finishing = false;
 
-            self.set_animation("jump".into());
+            self.play_animation("jump".into());
             velocity.y = -self.jump_power;
         }
 
@@ -322,11 +324,9 @@ impl ICharacterBody2D for Player {
                 && !self.dash_attack_finishing
                 && !self.aura_attacking
             {
-                self.set_animation("idle".into());
+                self.play_animation("idle".into());
             }
         }
-
-        animated.play();
 
         self.base_mut().move_and_slide();
         self.base_mut().set_velocity(velocity);
