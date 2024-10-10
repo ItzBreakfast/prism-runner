@@ -1,6 +1,35 @@
-[gd_scene load_steps=67 format=3 uid="uid://dgsw5i7o6l4yk"]
+[gd_scene load_steps=75 format=3 uid="uid://dgsw5i7o6l4yk"]
 
 [ext_resource type="Texture2D" uid="uid://xvqfsp432sdo" path="res://asset/warrior.png" id="1_num4q"]
+[ext_resource type="Texture2D" uid="uid://cnk3okdwkcv7w" path="res://asset/Warrior_SheetnoEffect.png" id="2_lgq1r"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_63rmx"]
+atlas = ExtResource("2_lgq1r")
+region = Rect2(345, 528, 69, 44)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_pxwxk"]
+atlas = ExtResource("2_lgq1r")
+region = Rect2(0, 572, 69, 44)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_7otd6"]
+atlas = ExtResource("2_lgq1r")
+region = Rect2(69, 572, 69, 44)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_byqql"]
+atlas = ExtResource("2_lgq1r")
+region = Rect2(138, 572, 69, 44)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_n7t4s"]
+atlas = ExtResource("2_lgq1r")
+region = Rect2(207, 572, 69, 44)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_aysvm"]
+atlas = ExtResource("2_lgq1r")
+region = Rect2(276, 572, 69, 44)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_qovp8"]
+atlas = ExtResource("2_lgq1r")
+region = Rect2(345, 572, 69, 44)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_qgj5k"]
 atlas = ExtResource("1_num4q")
@@ -257,6 +286,32 @@ region = Rect2(0, 660, 69, 44)
 [sub_resource type="SpriteFrames" id="SpriteFrames_eqchn"]
 animations = [{
 "frames": [{
+"duration": 6.0,
+"texture": SubResource("AtlasTexture_63rmx")
+}, {
+"duration": 8.0,
+"texture": SubResource("AtlasTexture_pxwxk")
+}, {
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_7otd6")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_byqql")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_n7t4s")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_aysvm")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_qovp8")
+}],
+"loop": false,
+"name": &"aura_attack",
+"speed": 10.0
+}, {
+"frames": [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_qgj5k")
 }, {
@@ -504,7 +559,7 @@ size = Vector2(23, 42)
 [node name="Animation" type="AnimatedSprite2D" parent="."]
 scale = Vector2(2.5, 2.5)
 sprite_frames = SubResource("SpriteFrames_eqchn")
-animation = &"basic_attack"
+animation = &"slide"
 
 [node name="CollisionShape2D2" type="CollisionShape2D" parent="."]
 position = Vector2(-19, 11)

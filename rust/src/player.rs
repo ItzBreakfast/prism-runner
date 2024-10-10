@@ -19,6 +19,7 @@ pub struct Player {
     dash: bool,
     basic_attack: bool,
     dash_attack: bool,
+    aura_attack: bool,
 
     flipped: bool,
     jumping: bool,
@@ -30,6 +31,7 @@ pub struct Player {
     basic_attacking: bool,
     dash_attacking: bool,
     dash_attack_finishing: bool,
+    aura_attacking: bool,
 
     base: Base<CharacterBody2D>,
 }
@@ -88,6 +90,11 @@ impl Player {
         if animation == "dash_attack_finished".into() {
             self.dash_attack_finishing = false;
         }
+
+        if animation == "aura_attack".into() {
+            self.aura_attack = false;
+            self.aura_attacking = false;
+        }
     }
 }
 
@@ -105,8 +112,9 @@ impl ICharacterBody2D for Player {
 
         self.basic_attack = input.is_action_just_pressed("basic_attack".into());
         self.dash_attack = input.is_action_just_pressed("dash_attack".into());
+        self.aura_attack = input.is_action_just_pressed("aura_attack".into());
 
-        if self.slide || self.dash || self.basic_attack {
+        if self.slide || self.dash || self.basic_attack || self.aura_attack {
             self.dash_finishing = false;
         }
     }
@@ -132,6 +140,7 @@ impl ICharacterBody2D for Player {
             && !self.basic_attacking
             && !self.dash_attacking
             && !self.dash_attack_finishing
+            && !self.aura_attacking
         {
             self.flipped = true;
             self.dash_finishing = false;
@@ -150,6 +159,7 @@ impl ICharacterBody2D for Player {
             && !self.basic_attacking
             && !self.dash_attacking
             && !self.dash_attack_finishing
+            && !self.aura_attacking
         {
             self.flipped = false;
             self.dash_finishing = false;
@@ -170,6 +180,7 @@ impl ICharacterBody2D for Player {
             && !self.basic_attacking
             && !self.dash_attacking
             && !self.dash_attack_finishing
+            && !self.aura_attacking
             && (self.left || self.right)
         {
             self.sliding = true;
@@ -192,6 +203,7 @@ impl ICharacterBody2D for Player {
             && !self.basic_attacking
             && !self.dash_attacking
             && !self.dash_attack_finishing
+            && !self.aura_attacking
             && (self.left || self.right)
         {
             self.dashed = true;
@@ -209,12 +221,14 @@ impl ICharacterBody2D for Player {
         }
 
         if self.basic_attack
+            && !self.basic_attacking
             && !self.jumping
             && !self.falling
             && !self.sliding
             && !self.dashing
             && !self.dash_attacking
             && !self.dash_attack_finishing
+            && !self.aura_attacking
         {
             self.basic_attack = false; // TODO: Remove this or just don't, since i don't have any idea
                                        // that this is working or not.
@@ -224,16 +238,34 @@ impl ICharacterBody2D for Player {
         }
 
         if self.dash_attack
+            && !self.dash_attacking
             && !self.jumping
             && !self.falling
             && !self.sliding
             && !self.dashing
             && !self.basic_attacking
             && !self.dash_attack_finishing
+            && !self.aura_attacking
         {
             self.dash_attacking = true;
 
             self.set_animation("dash_attack".into());
+        }
+
+        if self.aura_attack
+            && !self.aura_attacking
+            && !self.jumping
+            && !self.falling
+            && !self.sliding
+            && !self.dashing
+            && !self.dash_attacking
+            && !self.dash_attack_finishing
+        {
+            self.aura_attack = false; // TODO: Remove this or just don't, since i don't have any idea
+                                      // that this is working or not.
+            self.aura_attacking = true;
+
+            self.set_animation("aura_attack".into());
         }
 
         if self.dash_attacking {
@@ -273,7 +305,10 @@ impl ICharacterBody2D for Player {
             velocity.y = -self.jump_power;
         }
 
-        if ((!self.left && !self.right) || self.basic_attacking || self.dash_attack_finishing)
+        if ((!self.left && !self.right)
+            || self.basic_attacking
+            || self.dash_attack_finishing
+            || self.aura_attacking)
             && !self.sliding
             && !self.dashing
             && !self.dash_attacking
@@ -285,6 +320,7 @@ impl ICharacterBody2D for Player {
                 && !self.dash_finishing
                 && !self.basic_attacking
                 && !self.dash_attack_finishing
+                && !self.aura_attacking
             {
                 self.set_animation("idle".into());
             }
