@@ -18,5 +18,7 @@ impl ICamera2D for SideCamera {
         let player_position = player.get_position() + Vector2::new(0., -200.);
         self.base_mut()
             .set_position(position.lerp(player_position, 0.1));
+
+        // TODO: Add camera works as interation with Player.
     }
 }

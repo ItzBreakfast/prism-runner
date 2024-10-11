@@ -28,5 +28,7 @@ impl INode2D for Map {
 
         self.base_mut()
             .set_position(Vector2::new(camera.get_position().x - 1000., 325.));
+
+        // TODO: Add more buildings to TileMap if map designer doesn't do something.
     }
 }

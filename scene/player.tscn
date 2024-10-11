@@ -1,4 +1,4 @@
-[gd_scene load_steps=79 format=3 uid="uid://dgsw5i7o6l4yk"]
+[gd_scene load_steps=83 format=3 uid="uid://dgsw5i7o6l4yk"]
 
 [ext_resource type="Texture2D" uid="uid://xvqfsp432sdo" path="res://asset/warrior.png" id="1_num4q"]
 [ext_resource type="Texture2D" uid="uid://cnk3okdwkcv7w" path="res://asset/Warrior_SheetnoEffect.png" id="2_lgq1r"]
@@ -585,7 +585,21 @@ animations = [{
 }]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ajg5b"]
-size = Vector2(23, 42)
+size = Vector2(23, 23)
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_2cf4v"]
+radius = 41.974
+height = 169.854
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_8mujb"]
+radius = 40.7011
+height = 154.736
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_5kaw7"]
+size = Vector2(63, 46)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_u0stv"]
+size = Vector2(328, 20)
 
 [node name="Player" type="Player"]
 
@@ -593,11 +607,45 @@ size = Vector2(23, 42)
 scale = Vector2(2.5, 2.5)
 sprite_frames = SubResource("SpriteFrames_eqchn")
 animation = &"fall_attack"
-frame_progress = 0.205876
 
-[node name="CollisionShape2D2" type="CollisionShape2D" parent="."]
-position = Vector2(-19, 11)
+[node name="CollisionShape2D2" type="FlippableCollider" parent="."]
+position = Vector2(-19, 30)
 scale = Vector2(2, 2)
 shape = SubResource("RectangleShape2D_ajg5b")
 
+[node name="BasicAttack" type="Hitbox" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="BasicAttack"]
+position = Vector2(-5, -13)
+rotation = 1.77675
+shape = SubResource("CapsuleShape2D_2cf4v")
+disabled = true
+
+[node name="StrongAttack" type="Hitbox" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="StrongAttack"]
+position = Vector2(13, -7)
+rotation = 2.03505
+shape = SubResource("CapsuleShape2D_8mujb")
+disabled = true
+
+[node name="FallAttack" type="Hitbox" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="FallAttack"]
+position = Vector2(-22.5, 30)
+shape = SubResource("RectangleShape2D_5kaw7")
+disabled = true
+
+[node name="Earthquake" type="Hitbox" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Earthquake"]
+position = Vector2(0, 42)
+shape = SubResource("RectangleShape2D_u0stv")
+disabled = true
+
+[connection signal="flip" from="." to="BasicAttack" method="on_flip"]
+[connection signal="flip" from="." to="StrongAttack" method="on_flip"]
+[connection signal="flip" from="." to="FallAttack" method="on_flip"]
+[connection signal="flip" from="." to="Earthquake" method="on_flip"]
+[connection signal="flip" from="." to="CollisionShape2D2" method="on_flip"]
 [connection signal="animation_finished" from="Animation" to="." method="on_animation_finished"]

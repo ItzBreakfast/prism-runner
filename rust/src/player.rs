@@ -40,6 +40,9 @@ pub struct Player {
 
 #[godot_api]
 impl Player {
+    #[signal]
+    fn flip();
+
     fn play_animation(&mut self, name: StringName) {
         let mut animated = self.base().get_node_as::<AnimatedSprite2D>("Animation");
 
@@ -144,6 +147,9 @@ impl ICharacterBody2D for Player {
             0.
         };
 
+        // TODO: Add collision mechanism (Hitbox) with already existing Area2D for both hit and
+        //       attack.
+
         if (self.left || self.right)
             && !self.sliding
             && !self.dashing
@@ -154,11 +160,14 @@ impl ICharacterBody2D for Player {
             && !self.fall_attacking
         {
             if self.left {
-                self.flipped = true;
                 self.dash_finishing = false;
 
-                animated.set_flip_h(true);
                 velocity.x = -self.speed;
+                animated.set_flip_h(true);
+                if !self.flipped {
+                    self.base_mut().emit_signal("flip".into(), &[]);
+                    self.flipped = true;
+                }
 
                 if !self.jumping && !self.falling {
                     self.play_animation("run".into());
@@ -166,11 +175,14 @@ impl ICharacterBody2D for Player {
             }
 
             if self.right {
-                self.flipped = false;
                 self.dash_finishing = false;
 
-                animated.set_flip_h(false);
                 velocity.x = self.speed;
+                animated.set_flip_h(false);
+                if self.flipped {
+                    self.base_mut().emit_signal("flip".into(), &[]);
+                    self.flipped = false;
+                }
 
                 if !self.jumping && !self.falling {
                     self.play_animation("run".into());
@@ -207,6 +219,7 @@ impl ICharacterBody2D for Player {
             }
         }
 
+        // TODO: Try add some particle/effects to skill.
         if !self.jumping
             && !self.falling
             && !self.sliding
@@ -229,12 +242,14 @@ impl ICharacterBody2D for Player {
                 self.play_animation("dash_attack".into());
             }
 
+            // TODO: Finish aura_attack by adding sword aura.
             if self.aura_attack {
                 self.aura_attacking = true;
 
                 self.play_animation("aura_attack".into());
             }
 
+            // TODO: Finish fall attack.
             if self.fall_attack {
                 self.fall_attacking = true;
 

@@ -170,6 +170,7 @@ tile_set = SubResource("TileSet_d3edf")
 [node name="SideCamera" type="SideCamera" parent="."]
 
 [node name="Player" parent="." instance=ExtResource("5_4qwkf")]
+z_index = 1
 
 [node name="Enemy" parent="." instance=ExtResource("5_mg82l")]
 position = Vector2(-100, 0)

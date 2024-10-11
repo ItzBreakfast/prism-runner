@@ -3,7 +3,9 @@
 use godot::prelude::*;
 
 mod camera;
+mod collider;
 mod enemy;
+mod hitbox;
 mod map;
 mod player;
 
