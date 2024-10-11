@@ -3,6 +3,7 @@
 use godot::prelude::*;
 
 mod camera;
+mod enemy;
 mod map;
 mod player;
 
