@@ -1,7 +1,8 @@
-use crate::player::Player;
+use crate::{hitbox::Hitbox, player::Player};
 use godot::{
     classes::{
-        AnimatedSprite2D, CharacterBody2D, ICharacterBody2D, InputEvent, ProjectSettings, Timer,
+        AnimatedSprite2D, CharacterBody2D, CollisionShape2D, ICharacterBody2D, InputEvent,
+        ProjectSettings, Timer,
     },
     global::{move_toward, Key},
     prelude::*,
@@ -15,11 +16,13 @@ pub struct Enemy {
     speed: f32,
     inconstancy: f32,
 
+    flipped: bool,
     falling: bool,
     aggro: bool,
     attacking1: bool,
     attacking2: bool,
 
+    flip_delay: bool,
     attack1_delay: bool,
     attack2_delay: bool,
 
@@ -28,6 +31,9 @@ pub struct Enemy {
 
 #[godot_api]
 impl Enemy {
+    #[signal]
+    fn flip();
+
     fn play_animation(&mut self, name: impl Into<String>) {
         let mut animated = self.base().get_node_as::<AnimatedSprite2D>("Animation");
 
@@ -68,6 +74,18 @@ impl Enemy {
     }
 
     #[func]
+    fn on_body_entered(&mut self, body: Gd<Node2D>) {
+        let Ok(body) = body.try_cast::<Player>() else {
+            return;
+        };
+    }
+
+    #[func]
+    fn on_flip_timeout(&mut self) {
+        self.flip_delay = false;
+    }
+
+    #[func]
     fn on_attack1_timeout(&mut self) {
         self.attack1_delay = false;
     }
@@ -105,16 +123,47 @@ impl ICharacterBody2D for Enemy {
         //       attack.
         // TODO: Finish enemy mechanisms: Hit, Death, Jump (It's probably not gonna be implemented)
 
+        let attack1 = self.base().get_node_as::<Hitbox>("Attack1");
+        let mut upper_collision = attack1.get_node_as::<CollisionShape2D>("UpperCollision");
+        let mut lower_collision = attack1.get_node_as::<CollisionShape2D>("LowerCollision");
+        let mut attack2_collision = self
+            .base()
+            .get_node_as::<Hitbox>("Attack2")
+            .get_node_as::<CollisionShape2D>("Collision");
+
         let player = self
             .base()
             .get_parent()
             .unwrap()
             .get_node_as::<Player>("Player");
 
+        let animation = animated.get_animation().to_string();
+        let frame = animated.get_frame();
+
+        match frame {
+            3 if animation == "attack1" => {
+                lower_collision.set_disabled(false);
+            }
+            4..=6 if animation == "attack1" => {
+                upper_collision.set_disabled(false);
+                lower_collision.set_disabled(true);
+            }
+            4..=6 if animation == "attack2" => {
+                attack2_collision.set_disabled(false);
+            }
+            _ => {
+                upper_collision.set_disabled(true);
+                lower_collision.set_disabled(true);
+                attack2_collision.set_disabled(true);
+            }
+        }
+
         let magnitude =
             player.get_position() - self.base().get_position() + Vector2::new(self.inconstancy, 0.);
 
-        if magnitude.x.abs() < 600. {
+        if magnitude.x.abs() < 600.
+            && ((magnitude.x < 0. && self.flipped) || (magnitude.x >= 0. && !self.flipped))
+        {
             self.aggro = true;
         }
 
@@ -124,9 +173,12 @@ impl ICharacterBody2D for Enemy {
 
         let mut attack1_timer = self.base().get_node_as::<Timer>("Attack1Timer");
         let mut attack2_timer = self.base().get_node_as::<Timer>("Attack2Timer");
+        let mut flip_timer = self.base().get_node_as::<Timer>("FlipTimer");
 
         let attacking = self.attacking1 || self.attacking2;
         let idling = !self.falling && !attacking;
+
+        let flip_delay = rand::thread_rng().gen_range(10..15) as f64;
 
         // TODO: Add a projectile to attack2.
         if self.aggro && idling {
@@ -137,6 +189,8 @@ impl ICharacterBody2D for Enemy {
                 self.play_animation("run");
                 -self.speed
             } else if !self.attack2_delay {
+                flip_timer.set_wait_time(flip_delay);
+                flip_timer.start();
                 attack2_timer.start();
 
                 self.attacking2 = true;
@@ -145,6 +199,8 @@ impl ICharacterBody2D for Enemy {
 
                 0.
             } else if !self.attack1_delay {
+                flip_timer.set_wait_time(flip_delay);
+                flip_timer.start();
                 attack1_timer.start();
 
                 self.attacking1 = true;
@@ -158,10 +214,29 @@ impl ICharacterBody2D for Enemy {
             };
 
             if !attacking {
-                animated.set_flip_h(magnitude.x < 0.);
+                let flipped = magnitude.x < 0.;
+
+                if self.flipped != flipped {
+                    self.base_mut().emit_signal("flip".into(), &[]);
+                    self.flipped = flipped;
+
+                    animated.set_flip_h(self.flipped);
+                }
             }
         } else if idling {
             self.play_animation("idle");
+
+            if !self.flip_delay {
+                flip_timer.set_wait_time(flip_delay);
+                flip_timer.start();
+
+                self.base_mut().emit_signal("flip".into(), &[]);
+                self.flipped = !self.flipped;
+                self.flip_delay = true;
+
+                animated.set_flip_h(self.flipped);
+            }
+
             velocity.x = 0.;
         }
 

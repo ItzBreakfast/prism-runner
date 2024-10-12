@@ -626,7 +626,7 @@ one_way_collision = true
 
 [node name="BasicAttack" type="Hitbox" parent="."]
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="BasicAttack"]
+[node name="Collision" type="CollisionShape2D" parent="BasicAttack"]
 position = Vector2(-5, -13)
 rotation = 1.77675
 shape = SubResource("CapsuleShape2D_2cf4v")
@@ -634,7 +634,7 @@ disabled = true
 
 [node name="StrongAttack" type="Hitbox" parent="."]
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="StrongAttack"]
+[node name="Collision" type="CollisionShape2D" parent="StrongAttack"]
 position = Vector2(13, -7)
 rotation = 2.03505
 shape = SubResource("CapsuleShape2D_8mujb")
@@ -642,14 +642,14 @@ disabled = true
 
 [node name="FallAttack" type="Hitbox" parent="."]
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="FallAttack"]
+[node name="Collision" type="CollisionShape2D" parent="FallAttack"]
 position = Vector2(-22.5, 30)
 shape = SubResource("RectangleShape2D_5kaw7")
 disabled = true
 
 [node name="Earthquake" type="Hitbox" parent="."]
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Earthquake"]
+[node name="Collision" type="CollisionShape2D" parent="Earthquake"]
 position = Vector2(0, 42)
 shape = SubResource("RectangleShape2D_u0stv")
 disabled = true

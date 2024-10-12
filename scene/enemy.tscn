@@ -1,4 +1,4 @@
-[gd_scene load_steps=54 format=3 uid="uid://dce6ro3jythfd"]
+[gd_scene load_steps=57 format=3 uid="uid://dce6ro3jythfd"]
 
 [ext_resource type="Texture2D" uid="uid://c438en6fl31y2" path="res://asset/Attack1.png" id="1_i04d7"]
 [ext_resource type="Texture2D" uid="uid://1i01pvxfhyqm" path="res://asset/Attack2.png" id="2_j7bvu"]
@@ -359,12 +359,26 @@ height = 53.5
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_hqkga"]
 size = Vector2(60, 75)
 
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_a0eaq"]
+radius = 88.0
+height = 264.0
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_puric"]
+radius = 33.0
+height = 164.0
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_o5831"]
+radius = 131.0
+height = 282.0
+
 [node name="Enemy" type="Enemy"]
 
 [node name="Animation" type="AnimatedSprite2D" parent="."]
 scale = Vector2(2.024, 2.024)
 sprite_frames = SubResource("SpriteFrames_eqchn")
-animation = &"idle"
+animation = &"attack1"
+frame = 4
+frame_progress = 0.830119
 
 [node name="HeadCollision" type="CollisionShape2D" parent="."]
 position = Vector2(0, 31.5)
@@ -378,6 +392,10 @@ rotation = 3.14159
 shape = SubResource("RectangleShape2D_hqkga")
 one_way_collision = true
 
+[node name="FlipTimer" type="Timer" parent="."]
+wait_time = 10.0
+one_shot = true
+
 [node name="Attack1Timer" type="Timer" parent="."]
 wait_time = 2.0
 one_shot = true
@@ -386,6 +404,29 @@ one_shot = true
 wait_time = 10.0
 one_shot = true
 
+[node name="Attack1" type="Hitbox" parent="."]
+
+[node name="UpperCollision" type="CollisionShape2D" parent="Attack1"]
+position = Vector2(140, -75)
+shape = SubResource("CapsuleShape2D_a0eaq")
+disabled = true
+
+[node name="LowerCollision" type="CollisionShape2D" parent="Attack1"]
+position = Vector2(82, 33)
+rotation = 1.5708
+shape = SubResource("CapsuleShape2D_puric")
+disabled = true
+
+[node name="Attack2" type="Hitbox" parent="."]
+
+[node name="Collision" type="CollisionShape2D" parent="Attack2"]
+position = Vector2(112, -26)
+shape = SubResource("CapsuleShape2D_o5831")
+disabled = true
+
+[connection signal="flip" from="." to="Attack1" method="on_flip"]
+[connection signal="flip" from="." to="Attack2" method="on_flip"]
 [connection signal="animation_finished" from="Animation" to="." method="on_animation_finished"]
+[connection signal="timeout" from="FlipTimer" to="." method="on_flip_timeout"]
 [connection signal="timeout" from="Attack1Timer" to="." method="on_attack1_timeout"]
 [connection signal="timeout" from="Attack2Timer" to="." method="on_attack2_timeout"]
