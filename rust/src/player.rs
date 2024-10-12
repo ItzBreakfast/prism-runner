@@ -1,5 +1,8 @@
 use godot::{
-    classes::{AnimatedSprite2D, CharacterBody2D, ICharacterBody2D, InputEvent, ProjectSettings},
+    classes::{
+        AnimatedSprite2D, CharacterBody2D, CollisionShape2D, ICharacterBody2D, InputEvent,
+        ProjectSettings,
+    },
     global::{move_toward, Key},
     prelude::*,
 };
@@ -43,17 +46,32 @@ impl Player {
     #[signal]
     fn flip();
 
-    fn play_animation(&mut self, name: StringName) {
+    fn play_animation(&mut self, name: impl Into<String>) {
         let mut animated = self.base().get_node_as::<AnimatedSprite2D>("Animation");
 
-        self.on_animation_changed(animated.get_animation(), name.clone());
+        let old = animated.get_animation().to_string();
+        let new: String = name.into();
 
-        animated.set_animation(name);
-        animated.play();
+        if old != new {
+            self.on_animation_changed(old, new.clone());
+
+            animated.set_animation(new.into());
+            animated.play();
+        }
     }
 
-    fn on_animation_changed(&mut self, old: StringName, _new: StringName) {
-        if old == "dash_finished".into() {
+    fn on_animation_changed(&mut self, old: String, new: String) {
+        if old == "dash_attack" && new == "fall" {
+            self.dash_attack = false;
+            self.dash_attacking = false;
+            self.dash_attack_finishing = false;
+
+            self.base()
+                .get_node_as::<CollisionShape2D>("BodyCollision")
+                .set_one_way_collision(true);
+        }
+
+        if old == "dash_finished" {
             self.dash_finishing = false;
         }
     }
@@ -62,48 +80,51 @@ impl Player {
     fn on_animation_finished(&mut self) {
         let animated = self.base().get_node_as::<AnimatedSprite2D>("Animation");
 
-        let animation = animated.get_animation();
+        let animation = animated.get_animation().to_string();
 
-        if animation == "slide".into() {
+        if animation == "slide" {
             self.slide = false;
             self.sliding = false;
         }
 
-        if animation == "dash".into() {
+        if animation == "dash" {
             self.dash = false;
             self.dashing = false;
             self.dash_finishing = true;
 
-            self.play_animation("dash_finished".into());
+            self.play_animation("dash_finished");
         }
 
-        if animation == "dash_finished".into() {
+        if animation == "dash_finished" {
             self.dash_finishing = false;
         }
 
-        if animation == "basic_attack".into() {
+        if animation == "basic_attack" {
             self.basic_attack = false;
             self.basic_attacking = false;
         }
 
-        if animation == "dash_attack".into() {
+        if animation == "dash_attack" {
             self.dash_attack = false;
             self.dash_attacking = false;
             self.dash_attack_finishing = true;
 
-            self.play_animation("dash_attack_finished".into());
+            self.base()
+                .get_node_as::<CollisionShape2D>("BodyCollision")
+                .set_one_way_collision(true);
+            self.play_animation("dash_attack_finished");
         }
 
-        if animation == "dash_attack_finished".into() {
+        if animation == "dash_attack_finished" {
             self.dash_attack_finishing = false;
         }
 
-        if animation == "aura_attack".into() {
+        if animation == "aura_attack" {
             self.aura_attack = false;
             self.aura_attacking = false;
         }
 
-        if animation == "fall_attack".into() {
+        if animation == "fall_attack" {
             self.fall_attack = false;
             self.fall_attacking = false;
         }
@@ -170,7 +191,7 @@ impl ICharacterBody2D for Player {
                 }
 
                 if !self.jumping && !self.falling {
-                    self.play_animation("run".into());
+                    self.play_animation("run");
                 }
             }
 
@@ -185,14 +206,14 @@ impl ICharacterBody2D for Player {
                 }
 
                 if !self.jumping && !self.falling {
-                    self.play_animation("run".into());
+                    self.play_animation("run");
                 }
             }
 
             if self.slide && !self.falling && !self.jumping {
                 self.sliding = true;
 
-                self.play_animation("slide".into());
+                self.play_animation("slide");
 
                 if self.left {
                     velocity.x = self.speed * -1.25;
@@ -207,7 +228,7 @@ impl ICharacterBody2D for Player {
                 self.dashed = true;
                 self.dashing = true;
 
-                self.play_animation("dash".into());
+                self.play_animation("dash");
 
                 if self.left {
                     velocity.x = self.speed * -2.;
@@ -233,27 +254,30 @@ impl ICharacterBody2D for Player {
             if self.basic_attack {
                 self.basic_attacking = true;
 
-                self.play_animation("basic_attack".into());
+                self.play_animation("basic_attack");
             }
 
             if self.dash_attack {
                 self.dash_attacking = true;
 
-                self.play_animation("dash_attack".into());
+                self.play_animation("dash_attack");
+                self.base()
+                    .get_node_as::<CollisionShape2D>("BodyCollision")
+                    .set_one_way_collision(false);
             }
 
             // TODO: Finish aura_attack by adding sword aura.
             if self.aura_attack {
                 self.aura_attacking = true;
 
-                self.play_animation("aura_attack".into());
+                self.play_animation("aura_attack");
             }
 
             // TODO: Finish fall attack.
             if self.fall_attack {
                 self.fall_attacking = true;
 
-                self.play_animation("fall_attack".into());
+                self.play_animation("fall_attack");
             }
         }
 
@@ -270,7 +294,7 @@ impl ICharacterBody2D for Player {
             self.falling = true;
             self.dash_finishing = false;
 
-            self.play_animation("fall".into());
+            self.play_animation("fall");
         }
 
         if self.base().is_on_floor() {
@@ -292,7 +316,7 @@ impl ICharacterBody2D for Player {
             self.jumping = true;
             self.dash_finishing = false;
 
-            self.play_animation("jump".into());
+            self.play_animation("jump");
             velocity.y = -self.jump_power;
         }
 
@@ -314,7 +338,7 @@ impl ICharacterBody2D for Player {
                 && !self.dash_attack_finishing
                 && !self.aura_attacking
             {
-                self.play_animation("idle".into());
+                self.play_animation("idle");
             }
         }
 

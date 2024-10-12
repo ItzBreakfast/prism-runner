@@ -1,4 +1,4 @@
-[gd_scene load_steps=83 format=3 uid="uid://dgsw5i7o6l4yk"]
+[gd_scene load_steps=84 format=3 uid="uid://dgsw5i7o6l4yk"]
 
 [ext_resource type="Texture2D" uid="uid://xvqfsp432sdo" path="res://asset/warrior.png" id="1_num4q"]
 [ext_resource type="Texture2D" uid="uid://cnk3okdwkcv7w" path="res://asset/Warrior_SheetnoEffect.png" id="2_lgq1r"]
@@ -317,13 +317,13 @@ animations = [{
 "duration": 0.75,
 "texture": SubResource("AtlasTexture_byqql")
 }, {
-"duration": 0.75,
+"duration": 2.0,
 "texture": SubResource("AtlasTexture_n7t4s")
 }, {
-"duration": 0.75,
+"duration": 2.0,
 "texture": SubResource("AtlasTexture_aysvm")
 }, {
-"duration": 0.75,
+"duration": 5.0,
 "texture": SubResource("AtlasTexture_qovp8")
 }],
 "loop": false,
@@ -584,8 +584,12 @@ animations = [{
 "speed": 5.0
 }]
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_ajg5b"]
-size = Vector2(23, 23)
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_wnwpj"]
+radius = 11.5
+height = 42.0
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_2m7lh"]
+size = Vector2(46, 59)
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_2cf4v"]
 radius = 41.974
@@ -606,12 +610,19 @@ size = Vector2(328, 20)
 [node name="Animation" type="AnimatedSprite2D" parent="."]
 scale = Vector2(2.5, 2.5)
 sprite_frames = SubResource("SpriteFrames_eqchn")
-animation = &"fall_attack"
+animation = &"idle"
 
-[node name="CollisionShape2D2" type="FlippableCollider" parent="."]
-position = Vector2(-19, 30)
+[node name="HeadCollision" type="FlippableCollider" parent="."]
+position = Vector2(-18, 11)
+rotation = 3.14159
 scale = Vector2(2, 2)
-shape = SubResource("RectangleShape2D_ajg5b")
+shape = SubResource("CapsuleShape2D_wnwpj")
+one_way_collision = true
+
+[node name="BodyCollision" type="FlippableCollider" parent="."]
+position = Vector2(-18, 21.5)
+shape = SubResource("RectangleShape2D_2m7lh")
+one_way_collision = true
 
 [node name="BasicAttack" type="Hitbox" parent="."]
 
@@ -643,9 +654,10 @@ position = Vector2(0, 42)
 shape = SubResource("RectangleShape2D_u0stv")
 disabled = true
 
+[connection signal="flip" from="." to="HeadCollision" method="on_flip"]
+[connection signal="flip" from="." to="BodyCollision" method="on_flip"]
 [connection signal="flip" from="." to="BasicAttack" method="on_flip"]
 [connection signal="flip" from="." to="StrongAttack" method="on_flip"]
 [connection signal="flip" from="." to="FallAttack" method="on_flip"]
 [connection signal="flip" from="." to="Earthquake" method="on_flip"]
-[connection signal="flip" from="." to="CollisionShape2D2" method="on_flip"]
 [connection signal="animation_finished" from="Animation" to="." method="on_animation_finished"]

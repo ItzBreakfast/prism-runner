@@ -1,4 +1,4 @@
-[gd_scene load_steps=53 format=3 uid="uid://dce6ro3jythfd"]
+[gd_scene load_steps=54 format=3 uid="uid://dce6ro3jythfd"]
 
 [ext_resource type="Texture2D" uid="uid://c438en6fl31y2" path="res://asset/Attack1.png" id="1_i04d7"]
 [ext_resource type="Texture2D" uid="uid://1i01pvxfhyqm" path="res://asset/Attack2.png" id="2_j7bvu"]
@@ -212,33 +212,33 @@ animations = [{
 "speed": 10.0
 }, {
 "frames": [{
-"duration": 1.0,
+"duration": 2.0,
 "texture": SubResource("AtlasTexture_5e3h8")
 }, {
-"duration": 1.0,
+"duration": 3.0,
 "texture": SubResource("AtlasTexture_6u5y2")
 }, {
-"duration": 1.0,
+"duration": 3.0,
 "texture": SubResource("AtlasTexture_apg7j")
 }, {
-"duration": 1.0,
+"duration": 3.0,
 "texture": SubResource("AtlasTexture_dgwde")
 }, {
-"duration": 1.0,
+"duration": 0.75,
 "texture": SubResource("AtlasTexture_wqmer")
 }, {
-"duration": 1.0,
+"duration": 1.5,
 "texture": SubResource("AtlasTexture_lmldn")
 }, {
-"duration": 1.0,
+"duration": 3.0,
 "texture": SubResource("AtlasTexture_ijlhc")
 }, {
-"duration": 1.0,
+"duration": 5.0,
 "texture": SubResource("AtlasTexture_506lh")
 }],
 "loop": false,
 "name": &"attack2",
-"speed": 10.0
+"speed": 5.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -352,22 +352,40 @@ animations = [{
 "speed": 10.0
 }]
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_ajg5b"]
-size = Vector2(30, 53.5)
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_cgi50"]
+radius = 15.0
+height = 53.5
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_hqkga"]
+size = Vector2(60, 75)
 
 [node name="Enemy" type="Enemy"]
 
 [node name="Animation" type="AnimatedSprite2D" parent="."]
 scale = Vector2(2.024, 2.024)
 sprite_frames = SubResource("SpriteFrames_eqchn")
-animation = &"attack1"
-frame = 7
-frame_progress = 1.0
+animation = &"idle"
 
-[node name="CollisionShape2D2" type="CollisionShape2D" parent="."]
+[node name="HeadCollision" type="CollisionShape2D" parent="."]
 position = Vector2(0, 31.5)
 scale = Vector2(2, 2)
-shape = SubResource("RectangleShape2D_ajg5b")
+shape = SubResource("CapsuleShape2D_cgi50")
 one_way_collision = true
 
+[node name="BodyCollision" type="CollisionShape2D" parent="."]
+position = Vector2(0, 45.5)
+rotation = 3.14159
+shape = SubResource("RectangleShape2D_hqkga")
+one_way_collision = true
+
+[node name="Attack1Timer" type="Timer" parent="."]
+wait_time = 2.0
+one_shot = true
+
+[node name="Attack2Timer" type="Timer" parent="."]
+wait_time = 10.0
+one_shot = true
+
 [connection signal="animation_finished" from="Animation" to="." method="on_animation_finished"]
+[connection signal="timeout" from="Attack1Timer" to="." method="on_attack1_timeout"]
+[connection signal="timeout" from="Attack2Timer" to="." method="on_attack2_timeout"]

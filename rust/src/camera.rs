@@ -19,6 +19,6 @@ impl ICamera2D for SideCamera {
         self.base_mut()
             .set_position(position.lerp(player_position, 0.1));
 
-        // TODO: Add camera works as interation with Player.
+        // TODO: Add camera works (Some are translation, some are rotation) as interation with Player and Enemy.
     }
 }
