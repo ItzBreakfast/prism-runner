@@ -1,4 +1,4 @@
-[gd_scene load_steps=57 format=3 uid="uid://dce6ro3jythfd"]
+[gd_scene load_steps=68 format=3 uid="uid://dce6ro3jythfd"]
 
 [ext_resource type="Texture2D" uid="uid://c438en6fl31y2" path="res://asset/Attack1.png" id="1_i04d7"]
 [ext_resource type="Texture2D" uid="uid://1i01pvxfhyqm" path="res://asset/Attack2.png" id="2_j7bvu"]
@@ -6,6 +6,7 @@
 [ext_resource type="Texture2D" uid="uid://dgkda2tspvems" path="res://asset/Idle.png" id="3_iusnn"]
 [ext_resource type="Texture2D" uid="uid://di8ochxfnrifc" path="res://asset/Death.png" id="3_oufdf"]
 [ext_resource type="Texture2D" uid="uid://dbfd73wy8pnwa" path="res://asset/Fall.png" id="4_wt3mv"]
+[ext_resource type="Texture2D" uid="uid://bedqf5jmqovur" path="res://asset/Take hit.png" id="5_xcqbd"]
 [ext_resource type="Texture2D" uid="uid://k8orxwut2o8e" path="res://asset/Jump.png" id="6_ellbp"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_i4r35"]
@@ -72,6 +73,34 @@ region = Rect2(1500, 0, 250, 250)
 atlas = ExtResource("2_j7bvu")
 region = Rect2(1750, 0, 250, 250)
 
+[sub_resource type="AtlasTexture" id="AtlasTexture_vh3b6"]
+atlas = ExtResource("3_oufdf")
+region = Rect2(0, 0, 250, 250)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_7kjmc"]
+atlas = ExtResource("3_oufdf")
+region = Rect2(250, 0, 250, 250)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_tueod"]
+atlas = ExtResource("3_oufdf")
+region = Rect2(500, 0, 250, 250)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_e6iov"]
+atlas = ExtResource("3_oufdf")
+region = Rect2(750, 0, 250, 250)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_a4rma"]
+atlas = ExtResource("3_oufdf")
+region = Rect2(1000, 0, 250, 250)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_uqa26"]
+atlas = ExtResource("3_oufdf")
+region = Rect2(1250, 0, 250, 250)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_curkq"]
+atlas = ExtResource("3_oufdf")
+region = Rect2(1500, 0, 250, 250)
+
 [sub_resource type="AtlasTexture" id="AtlasTexture_gpjwn"]
 atlas = ExtResource("3_oufdf")
 region = Rect2(0, 0, 250, 250)
@@ -107,6 +136,18 @@ region = Rect2(0, 0, 250, 250)
 [sub_resource type="AtlasTexture" id="AtlasTexture_4u3yj"]
 atlas = ExtResource("4_wt3mv")
 region = Rect2(250, 0, 250, 250)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_vnktk"]
+atlas = ExtResource("5_xcqbd")
+region = Rect2(0, 0, 250, 250)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_cpbmp"]
+atlas = ExtResource("5_xcqbd")
+region = Rect2(250, 0, 250, 250)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_yv6r3"]
+atlas = ExtResource("5_xcqbd")
+region = Rect2(500, 0, 250, 250)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_n8iwp"]
 atlas = ExtResource("3_iusnn")
@@ -242,6 +283,32 @@ animations = [{
 }, {
 "frames": [{
 "duration": 1.0,
+"texture": SubResource("AtlasTexture_vh3b6")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_7kjmc")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_tueod")
+}, {
+"duration": 3.0,
+"texture": SubResource("AtlasTexture_e6iov")
+}, {
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_a4rma")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_uqa26")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_curkq")
+}],
+"loop": false,
+"name": &"death",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
 "texture": SubResource("AtlasTexture_gpjwn")
 }, {
 "duration": 1.0,
@@ -277,7 +344,16 @@ animations = [{
 "name": &"fall",
 "speed": 10.0
 }, {
-"frames": [],
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_vnktk")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_cpbmp")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_yv6r3")
+}],
 "loop": false,
 "name": &"hit",
 "speed": 10.0
@@ -372,16 +448,16 @@ radius = 131.0
 height = 282.0
 
 [node name="Enemy" type="Enemy"]
+z_index = 1
 
 [node name="Animation" type="AnimatedSprite2D" parent="."]
 scale = Vector2(2.024, 2.024)
 sprite_frames = SubResource("SpriteFrames_eqchn")
-animation = &"attack1"
-frame = 4
-frame_progress = 0.830119
+animation = &"idle"
 
 [node name="HeadCollision" type="CollisionShape2D" parent="."]
 position = Vector2(0, 31.5)
+rotation = 3.14159
 scale = Vector2(2, 2)
 shape = SubResource("CapsuleShape2D_cgi50")
 one_way_collision = true
@@ -430,3 +506,5 @@ disabled = true
 [connection signal="timeout" from="FlipTimer" to="." method="on_flip_timeout"]
 [connection signal="timeout" from="Attack1Timer" to="." method="on_attack1_timeout"]
 [connection signal="timeout" from="Attack2Timer" to="." method="on_attack2_timeout"]
+[connection signal="body_entered" from="Attack1" to="." method="on_attack1_body_entered"]
+[connection signal="body_entered" from="Attack2" to="." method="on_attack2_body_entered"]

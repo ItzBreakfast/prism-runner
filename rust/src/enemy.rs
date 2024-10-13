@@ -1,4 +1,4 @@
-use crate::{hitbox::Hitbox, player::Player};
+use crate::{camera::SideCamera, hitbox::Hitbox, player::Player};
 use godot::{
     classes::{
         AnimatedSprite2D, CharacterBody2D, CollisionShape2D, ICharacterBody2D, InputEvent,
@@ -12,12 +12,20 @@ use rand::Rng;
 #[derive(GodotClass)]
 #[class(init, base=CharacterBody2D)]
 pub struct Enemy {
+    #[var]
+    #[init(val = 100.)]
+    hp: f32,
     #[init(val = 250.)]
     speed: f32,
     inconstancy: f32,
+    #[var]
+    invincible: bool,
 
     flipped: bool,
     falling: bool,
+    #[var]
+    hit: bool,
+    suffering: bool,
     aggro: bool,
     attacking1: bool,
     attacking2: bool,
@@ -25,6 +33,8 @@ pub struct Enemy {
     flip_delay: bool,
     attack1_delay: bool,
     attack2_delay: bool,
+
+    attack2_shook: bool,
 
     base: Base<CharacterBody2D>,
 }
@@ -64,20 +74,52 @@ impl Enemy {
 
         let animation = animated.get_animation().to_string();
 
+        if animation == "hit" {
+            self.suffering = false;
+        }
+
         if animation == "attack1" {
             self.attacking1 = false;
         }
 
         if animation == "attack2" {
+            self.invincible = false;
             self.attacking2 = false;
         }
     }
 
     #[func]
-    fn on_body_entered(&mut self, body: Gd<Node2D>) {
-        let Ok(body) = body.try_cast::<Player>() else {
+    fn on_attack1_body_entered(&mut self, body: Gd<Node2D>) {
+        let Ok(mut body) = body.try_cast::<Player>() else {
             return;
         };
+
+        if !body.get("invincible".into()).to::<bool>() {
+            let name: StringName = "hp".into();
+            let hp: f32 = body.get(name.clone()).to();
+
+            body.set("hit".into(), &true.to_variant());
+            body.set(name, &(hp - 10.).to_variant());
+
+            body.set_velocity(Vector2::new(if self.flipped { -200. } else { 200. }, -400.));
+        }
+    }
+
+    #[func]
+    fn on_attack2_body_entered(&mut self, body: Gd<Node2D>) {
+        let Ok(mut body) = body.try_cast::<Player>() else {
+            return;
+        };
+
+        if !body.get("invincible".into()).to::<bool>() {
+            let name: StringName = "hp".into();
+            let hp: f32 = body.get(name.clone()).to();
+
+            body.set("hit".into(), &true.to_variant());
+            body.set(name, &(hp - 30.).to_variant());
+
+            body.set_velocity(Vector2::new(if self.flipped { -400. } else { 400. }, 800.));
+        }
     }
 
     #[func]
@@ -104,7 +146,30 @@ impl ICharacterBody2D for Enemy {
         self.inconstancy = rng.gen_range(-50..50) as f32;
     }
 
+    fn draw(&mut self) {
+        if self.hp > 0. {
+            let hp = self.hp;
+            let invincible = self.invincible;
+
+            self.base_mut().draw_rect(
+                Rect2::new(Vector2::new(-52., 103.), Vector2::new(104., 9.)),
+                Color::BLACK,
+            );
+
+            self.base_mut().draw_rect(
+                Rect2::new(Vector2::new(-50., 105.), Vector2::new(hp, 5.)),
+                if invincible {
+                    Color::INDIAN_RED
+                } else {
+                    Color::RED
+                },
+            );
+        }
+    }
+
     fn physics_process(&mut self, delta: f64) {
+        self.base_mut().queue_redraw();
+
         let gravity = ProjectSettings::singleton()
             .get_setting("physics/2d/default_gravity".into())
             .to::<f32>()
@@ -112,6 +177,25 @@ impl ICharacterBody2D for Enemy {
 
         let mut velocity = self.base().get_velocity();
         let mut animated = self.base().get_node_as::<AnimatedSprite2D>("Animation");
+
+        if self.hp <= 0. {
+            self.play_animation("death");
+            return;
+        } else {
+            self.hp = (self.hp + 0.05).min(100.)
+        }
+
+        if self.hit {
+            self.hit = false;
+            self.suffering = true;
+
+            animated.set_frame(0);
+            self.play_animation("hit");
+        }
+
+        if !self.attacking2 {
+            self.invincible = false;
+        }
 
         velocity.y = if !self.base().is_on_floor() {
             (velocity.y + gravity + delta as f32).min(750.)
@@ -140,6 +224,12 @@ impl ICharacterBody2D for Enemy {
         let animation = animated.get_animation().to_string();
         let frame = animated.get_frame();
 
+        let mut camera = self
+            .base()
+            .get_parent()
+            .unwrap()
+            .get_node_as::<SideCamera>("SideCamera");
+
         match frame {
             3 if animation == "attack1" => {
                 lower_collision.set_disabled(false);
@@ -148,10 +238,17 @@ impl ICharacterBody2D for Enemy {
                 upper_collision.set_disabled(false);
                 lower_collision.set_disabled(true);
             }
-            4..=6 if animation == "attack2" => {
+            4..=5 if animation == "attack2" => {
                 attack2_collision.set_disabled(false);
+
+                if !self.attack2_shook {
+                    self.attack2_shook = true;
+                    camera.call("shake".into(), &[50.to_variant()]);
+                }
             }
             _ => {
+                self.attack2_shook = false;
+
                 upper_collision.set_disabled(true);
                 lower_collision.set_disabled(true);
                 attack2_collision.set_disabled(true);
@@ -176,7 +273,7 @@ impl ICharacterBody2D for Enemy {
         let mut flip_timer = self.base().get_node_as::<Timer>("FlipTimer");
 
         let attacking = self.attacking1 || self.attacking2;
-        let idling = !self.falling && !attacking;
+        let idling = !self.suffering && !self.falling && !attacking;
 
         let flip_delay = rand::thread_rng().gen_range(10..15) as f64;
 
@@ -193,6 +290,7 @@ impl ICharacterBody2D for Enemy {
                 flip_timer.start();
                 attack2_timer.start();
 
+                self.invincible = true;
                 self.attacking2 = true;
                 self.attack2_delay = true;
                 self.play_animation("attack2");
@@ -242,7 +340,10 @@ impl ICharacterBody2D for Enemy {
 
         if velocity.y > 0. {
             self.falling = true;
-            self.play_animation("fall");
+
+            if !self.suffering {
+                self.play_animation("fall");
+            }
         }
 
         if self.base().is_on_floor() {

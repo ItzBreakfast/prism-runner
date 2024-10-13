@@ -1,10 +1,22 @@
 use crate::player::Player;
-use godot::prelude::*;
+use godot::{builtin::math::FloatExt, prelude::*};
+use rand::Rng;
 
 #[derive(GodotClass)]
 #[class(init, base=Camera2D)]
 pub struct SideCamera {
+    shake: i32,
+    sign: bool,
+
     base: Base<Camera2D>,
+}
+
+#[godot_api]
+impl SideCamera {
+    #[func]
+    fn shake(&mut self, power: i32) {
+        self.shake = (self.shake + power).min(200);
+    }
 }
 
 #[godot_api]
@@ -15,10 +27,23 @@ impl ICamera2D for SideCamera {
         let position = self.base().get_position();
         let player: Gd<Player> = parent.get_node_as("Player");
 
-        let player_position = player.get_position() + Vector2::new(0., -200.);
-        self.base_mut()
-            .set_position(position.lerp(player_position, 0.1));
+        let power = if self.shake > 2 {
+            rand::thread_rng().gen_range(-self.shake..=self.shake)
+        } else {
+            0
+        };
+
+        let player_position = player.get_position() + Vector2::new(0., -200. + power as f32);
+
+        let target = if player.get("fall_attacking".into()).to::<bool>() {
+            player_position
+        } else {
+            position.lerp(player_position, 0.1)
+        };
+        self.base_mut().set_position(target);
 
         // TODO: Add camera works (Some are translation, some are rotation) as interation with Player and Enemy.
+
+        self.shake = (self.shake - 2).max(0);
     }
 }

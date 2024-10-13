@@ -3,10 +3,10 @@
 use godot::prelude::*;
 
 // TODO: Refactory the code (player.rs above all) with following methods:
-//         - Add an animation state variable to avoid .into() abuse.
 //         - Put out some conditions from if statements using variable as category.
 // TODO: Add a boss from enemy resources.
 
+mod area;
 mod camera;
 mod collider;
 mod enemy;
