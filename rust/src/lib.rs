@@ -7,6 +7,7 @@ use godot::prelude::*;
 // TODO: Add a boss from enemy resources.
 
 mod area;
+mod aura;
 mod camera;
 mod collider;
 mod crack;

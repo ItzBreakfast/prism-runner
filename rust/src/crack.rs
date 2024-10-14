@@ -1,4 +1,8 @@
-use godot::{classes::Sprite2D, obj::WithBaseField, prelude::*};
+use godot::{
+    classes::{GpuParticles2D, Sprite2D, Timer},
+    obj::WithBaseField,
+    prelude::*,
+};
 
 #[derive(GodotClass)]
 #[class(init, base=Node2D)]
@@ -19,7 +23,16 @@ impl GroundCrack {
 
 #[godot_api]
 impl INode2D for GroundCrack {
-    fn physics_process(&mut self, delta: f64) {
+    fn physics_process(&mut self, _delta: f64) {
+        let mut fragment = self
+            .base()
+            .get_node_as::<GpuParticles2D>("FragmentParticles");
+        let timer = self.base().get_node_as::<Timer>("Timer");
+
+        if timer.get_time_left() < 2.9 {
+            fragment.set_emitting(false);
+        }
+
         if self.delay {
             return;
         }

@@ -1,10 +1,9 @@
 use crate::{camera::SideCamera, hitbox::Hitbox, player::Player};
 use godot::{
     classes::{
-        AnimatedSprite2D, CharacterBody2D, CollisionShape2D, ICharacterBody2D, InputEvent,
-        ProjectSettings, Timer,
+        AnimatedSprite2D, CharacterBody2D, CollisionShape2D, ICharacterBody2D, ProjectSettings,
+        Timer,
     },
-    global::{move_toward, Key},
     prelude::*,
 };
 use rand::Rng;
@@ -18,6 +17,8 @@ pub struct Enemy {
     #[init(val = 250.)]
     speed: f32,
     inconstancy: f32,
+    #[var]
+    resistance: bool,
     #[var]
     invincible: bool,
 
@@ -83,7 +84,7 @@ impl Enemy {
         }
 
         if animation == "attack2" {
-            self.invincible = false;
+            self.resistance = false;
             self.attacking2 = false;
         }
     }
@@ -149,6 +150,7 @@ impl ICharacterBody2D for Enemy {
     fn draw(&mut self) {
         if self.hp > 0. {
             let hp = self.hp;
+            let resistance = self.resistance;
             let invincible = self.invincible;
 
             self.base_mut().draw_rect(
@@ -160,6 +162,8 @@ impl ICharacterBody2D for Enemy {
                 Rect2::new(Vector2::new(-50., 105.), Vector2::new(hp, 5.)),
                 if invincible {
                     Color::INDIAN_RED
+                } else if resistance {
+                    Color::BLUE
                 } else {
                     Color::RED
                 },
@@ -194,7 +198,7 @@ impl ICharacterBody2D for Enemy {
         }
 
         if !self.attacking2 {
-            self.invincible = false;
+            self.resistance = false;
         }
 
         velocity.y = if !self.base().is_on_floor() {
@@ -202,10 +206,6 @@ impl ICharacterBody2D for Enemy {
         } else {
             0.
         };
-
-        // TODO: Add collision mechanism (Hitbox) with already existing Area2D for both hit and
-        //       attack.
-        // TODO: Finish enemy mechanisms: Hit, Death, Jump (It's probably not gonna be implemented)
 
         let attack1 = self.base().get_node_as::<Hitbox>("Attack1");
         let mut upper_collision = attack1.get_node_as::<CollisionShape2D>("UpperCollision");
@@ -295,7 +295,7 @@ impl ICharacterBody2D for Enemy {
                 flip_timer.start();
                 attack2_timer.start();
 
-                self.invincible = true;
+                self.resistance = true;
                 self.attacking2 = true;
                 self.attack2_delay = true;
                 self.play_animation("attack2");

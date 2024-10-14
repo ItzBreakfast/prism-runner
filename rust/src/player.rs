@@ -7,7 +7,9 @@ use godot::{
     prelude::*,
 };
 
-use crate::{camera::SideCamera, crack::GroundCrack, enemy::Enemy, hitbox::Hitbox};
+use crate::{
+    aura::SwordAura, camera::SideCamera, crack::GroundCrack, enemy::Enemy, hitbox::Hitbox,
+};
 
 #[derive(GodotClass)]
 #[class(init, base=CharacterBody2D)]
@@ -19,6 +21,9 @@ pub struct Player {
     speed: f32,
     #[init(val = 600.)]
     jump_power: f32,
+    // TODO: Implement resistance mechanism for player.
+    #[var]
+    resistance: bool,
     #[var]
     invincible: bool,
     #[var]
@@ -61,8 +66,11 @@ pub struct Player {
     fall_attack_delay: bool,
     climb_delay: bool,
 
-    aura_attack_shook: bool,
+    strong_attack_shook: bool,
+    sword_aura_spawned: bool,
 
+    #[init(val=load("scene/sword_aura.tscn"))]
+    sword_aura: Gd<PackedScene>,
     #[init(val=load("scene/ground_crack.tscn"))]
     ground_crack: Gd<PackedScene>,
 
@@ -199,13 +207,19 @@ impl Player {
         };
 
         if !body.get("invincible".into()).to::<bool>() {
+            let resistance = body.get("resistance".into()).to::<bool>();
             let name: StringName = "hp".into();
             let hp: f32 = body.get(name.clone()).to();
 
-            body.set("hit".into(), &true.to_variant());
-            body.set(name, &(hp - 10.).to_variant());
+            body.set(
+                name,
+                &(hp - if resistance { 10. } else { 20. }).to_variant(),
+            );
 
-            body.set_velocity(Vector2::new(0., -400.));
+            if !resistance {
+                body.set("hit".into(), &true.to_variant());
+                body.set_velocity(Vector2::new(0., -400.));
+            }
         }
     }
 
@@ -216,13 +230,19 @@ impl Player {
         };
 
         if !body.get("invincible".into()).to::<bool>() {
+            let resistance = body.get("resistance".into()).to::<bool>();
             let name: StringName = "hp".into();
             let hp: f32 = body.get(name.clone()).to();
 
-            body.set("hit".into(), &true.to_variant());
-            body.set(name, &(hp - 30.).to_variant());
+            body.set(
+                name,
+                &(hp - if resistance { 15. } else { 30. }).to_variant(),
+            );
 
-            body.set_velocity(Vector2::new(0., 400.));
+            if !resistance {
+                body.set("hit".into(), &true.to_variant());
+                body.set_velocity(Vector2::new(0., 400.));
+            }
         }
     }
 
@@ -233,13 +253,19 @@ impl Player {
         };
 
         if !body.get("invincible".into()).to::<bool>() {
+            let resistance = body.get("resistance".into()).to::<bool>();
             let name: StringName = "hp".into();
             let hp: f32 = body.get(name.clone()).to();
 
-            body.set("hit".into(), &true.to_variant());
-            body.set(name, &(hp - 30.).to_variant());
+            body.set(
+                name,
+                &(hp - if resistance { 15. } else { 30. }).to_variant(),
+            );
 
-            body.set_velocity(Vector2::new(0., 400.));
+            if !resistance {
+                body.set("hit".into(), &true.to_variant());
+                body.set_velocity(Vector2::new(0., 400.));
+            }
         }
     }
 
@@ -250,19 +276,25 @@ impl Player {
         };
 
         if !body.get("invincible".into()).to::<bool>() {
+            let resistance = body.get("resistance".into()).to::<bool>();
             let name: StringName = "hp".into();
             let hp: f32 = body.get(name.clone()).to();
 
-            body.set("hit".into(), &true.to_variant());
-            body.set(name, &(hp - 50.).to_variant());
+            body.set(
+                name,
+                &(hp - if resistance { 25. } else { 50. }).to_variant(),
+            );
 
-            let velocity = if self.base().get_position().x - body.get_position().x < 0. {
-                1000.
-            } else {
-                -1000.
-            };
+            if !resistance {
+                let velocity = if self.base().get_position().x - body.get_position().x < 0. {
+                    1000.
+                } else {
+                    -1000.
+                };
 
-            body.set_velocity(Vector2::new(velocity, -15000.));
+                body.set("hit".into(), &true.to_variant());
+                body.set_velocity(Vector2::new(velocity, -1500.));
+            }
         }
     }
 
@@ -359,8 +391,6 @@ impl ICharacterBody2D for Player {
             0.
         };
 
-        // TODO: Add collision mechanism (Hitbox) with already existing Area2D for both hit and
-        //       attack.
         if self.hit {
             self.hit = false;
             self.suffering = true;
@@ -419,9 +449,26 @@ impl ICharacterBody2D for Player {
                 fall_collision.set_disabled(true);
                 earthquake_collision.set_disabled(true);
 
-                if !self.aura_attack_shook {
-                    self.aura_attack_shook = true;
+                if !self.strong_attack_shook {
+                    self.strong_attack_shook = true;
                     camera.call("shake".into(), &[30.to_variant()]);
+                }
+
+                if !self.sword_aura_spawned && animation == "aura_attack" {
+                    let mut sword_aura = self.sword_aura.instantiate().unwrap().cast::<SwordAura>();
+
+                    self.sword_aura_spawned = true;
+
+                    self.base()
+                        .get_parent()
+                        .unwrap()
+                        .add_child(sword_aura.clone());
+
+                    sword_aura.set("flipped".into(), &self.flipped.to_variant());
+                    sword_aura.set_scale(Vector2::new(if self.flipped { -1. } else { 1. }, 1.));
+
+                    sword_aura.set_position(self.base().get_position() + Vector2::new(50., 0.));
+                    sword_aura.set_physics_process(true);
                 }
             }
             _ if animation == "fall_attack" => {
@@ -437,7 +484,8 @@ impl ICharacterBody2D for Player {
                 earthquake_collision.set_disabled(false);
             }
             _ => {
-                self.aura_attack_shook = false;
+                self.strong_attack_shook = false;
+                self.sword_aura_spawned = false;
 
                 basic_collision.set_disabled(true);
                 strong_collision.set_disabled(true);
@@ -579,7 +627,6 @@ impl ICharacterBody2D for Player {
                     .set_one_way_collision(false);
             }
 
-            // TODO: Finish aura_attack by adding sword aura.
             if self.aura_attack && !self.aura_attack_delay {
                 aura_attack_timer.start();
 

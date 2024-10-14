@@ -1,0 +1,76 @@
+[gd_scene load_steps=8 format=3 uid="uid://bswuw3bhux1mf"]
+
+[ext_resource type="Texture2D" uid="uid://qu35kit1xqs3" path="res://asset/sword_aura.png" id="1_87pcg"]
+
+[sub_resource type="Gradient" id="Gradient_qwo0w"]
+colors = PackedColorArray(1, 1, 0, 1, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_gco2n"]
+gradient = SubResource("Gradient_qwo0w")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_1n1ko"]
+lifetime_randomness = 0.25
+particle_flag_disable_z = true
+emission_shape_scale = Vector3(15, 15, 1)
+emission_shape = 2
+emission_sphere_radius = 1.0
+angle_min = -180.0
+angle_max = 180.0
+direction = Vector3(-1, 0, 0)
+spread = 0.0
+initial_velocity_min = 100.0
+initial_velocity_max = 100.0
+gravity = Vector3(0, 0, 0)
+scale_min = 3.0
+scale_max = 3.0
+color_ramp = SubResource("GradientTexture1D_gco2n")
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_q184q"]
+radius = 13.0
+height = 38.0
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_lr4cv"]
+height = 93.6626
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_mk5nr"]
+radius = 16.2313
+height = 134.888
+
+[node name="SwordAura" type="SwordAura"]
+z_index = 4
+
+[node name="SwordAura" type="Sprite2D" parent="."]
+z_index = 5
+rotation = -3.92699
+scale = Vector2(3, 3)
+texture = ExtResource("1_87pcg")
+
+[node name="Timer" type="Timer" parent="."]
+wait_time = 1.5
+one_shot = true
+autostart = true
+
+[node name="AuraParticles" type="GPUParticles2D" parent="."]
+position = Vector2(0, 2)
+scale = Vector2(3, 3)
+amount = 20
+process_material = SubResource("ParticleProcessMaterial_1n1ko")
+
+[node name="AuraCollision" type="Area2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="AuraCollision"]
+position = Vector2(54, 10)
+shape = SubResource("CapsuleShape2D_q184q")
+
+[node name="CollisionShape2D2" type="CollisionShape2D" parent="AuraCollision"]
+position = Vector2(20, 41)
+rotation = 1.309
+shape = SubResource("CapsuleShape2D_lr4cv")
+
+[node name="CollisionShape2D3" type="CollisionShape2D" parent="AuraCollision"]
+position = Vector2(-1, -24)
+rotation = -1.309
+shape = SubResource("CapsuleShape2D_mk5nr")
+
+[connection signal="timeout" from="Timer" to="." method="on_timeout"]
+[connection signal="body_entered" from="AuraCollision" to="." method="on_aura_body_entered"]
