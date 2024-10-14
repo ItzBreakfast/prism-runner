@@ -345,14 +345,12 @@ impl ICharacterBody2D for Player {
     fn input(&mut self, _event: Gd<InputEvent>) {
         let input = Input::singleton();
 
-        self.left = input.is_key_pressed(Key::LEFT);
-        self.right = input.is_key_pressed(Key::RIGHT);
-        self.jump = input.is_key_pressed(Key::SPACE);
+        // 여기부터 작성 시작해주세요!!
+        
+        
+        
+        // 여기까지 작성하시면 됩니다!!
 
-        self.slide = input.is_action_just_pressed("slide".into());
-        self.dash = input.is_action_just_pressed("dash".into());
-
-        self.basic_attack = input.is_action_just_pressed("basic_attack".into());
         self.dash_attack = input.is_action_just_pressed("dash_attack".into());
         self.aura_attack = input.is_action_just_pressed("aura_attack".into());
         self.fall_attack = input.is_action_just_pressed("fall_attack".into());
