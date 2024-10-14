@@ -1,0 +1,17 @@
+[gd_scene load_steps=2 format=3 uid="uid://dn0glct7voexw"]
+
+[ext_resource type="Texture2D" uid="uid://b8nod7y3baf2a" path="res://asset/ground_crack.png" id="1_075da"]
+
+[node name="GroundCrack" type="GroundCrack"]
+
+[node name="GroundCrack" type="Sprite2D" parent="."]
+position = Vector2(-1.52588e-05, -7.62939e-06)
+scale = Vector2(0.255333, 0.0276923)
+texture = ExtResource("1_075da")
+
+[node name="Timer" type="Timer" parent="."]
+wait_time = 3.0
+one_shot = true
+autostart = true
+
+[connection signal="timeout" from="Timer" to="." method="on_timeout"]

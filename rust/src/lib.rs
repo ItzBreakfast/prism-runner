@@ -1,4 +1,4 @@
-#![allow(unused)]
+#![allow(overlapping_range_endpoints, unused)]
 
 use godot::prelude::*;
 
@@ -9,6 +9,7 @@ use godot::prelude::*;
 mod area;
 mod camera;
 mod collider;
+mod crack;
 mod enemy;
 mod hitbox;
 mod map;

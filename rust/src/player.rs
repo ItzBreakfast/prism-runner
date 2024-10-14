@@ -1,13 +1,13 @@
 use godot::{
     classes::{
         AnimatedSprite2D, CharacterBody2D, CollisionShape2D, ICharacterBody2D, InputEvent,
-        ProjectSettings,
+        ProjectSettings, Timer,
     },
     global::{move_toward, Key},
     prelude::*,
 };
 
-use crate::{camera::SideCamera, enemy::Enemy, hitbox::Hitbox};
+use crate::{camera::SideCamera, crack::GroundCrack, enemy::Enemy, hitbox::Hitbox};
 
 #[derive(GodotClass)]
 #[class(init, base=CharacterBody2D)]
@@ -47,6 +47,7 @@ pub struct Player {
     dashing: bool,
     dash_finishing: bool,
     basic_attacking: bool,
+    #[var]
     dash_attacking: bool,
     dash_attack_finishing: bool,
     aura_attacking: bool,
@@ -55,7 +56,15 @@ pub struct Player {
     fall_attack_finishing: bool,
     climbing: bool,
 
+    dash_attack_delay: bool,
+    aura_attack_delay: bool,
+    fall_attack_delay: bool,
+    climb_delay: bool,
+
     aura_attack_shook: bool,
+
+    #[init(val=load("scene/ground_crack.tscn"))]
+    ground_crack: Gd<PackedScene>,
 
     base: Base<CharacterBody2D>,
 }
@@ -248,13 +257,33 @@ impl Player {
             body.set(name, &(hp - 50.).to_variant());
 
             let velocity = if self.base().get_position().x - body.get_position().x < 0. {
-                500.
+                1000.
             } else {
-                -500.
+                -1000.
             };
 
-            body.set_velocity(Vector2::new(velocity, -500.));
+            body.set_velocity(Vector2::new(velocity, -15000.));
         }
+    }
+
+    #[func]
+    fn on_dash_attack_timeout(&mut self) {
+        self.dash_attack_delay = false;
+    }
+
+    #[func]
+    fn on_aura_attack_timeout(&mut self) {
+        self.aura_attack_delay = false;
+    }
+
+    #[func]
+    fn on_fall_attack_timeout(&mut self) {
+        self.fall_attack_delay = false;
+    }
+
+    #[func]
+    fn on_climb_timeout(&mut self) {
+        self.climb_delay = false;
     }
 }
 
@@ -273,7 +302,7 @@ impl ICharacterBody2D for Player {
             self.base_mut().draw_rect(
                 Rect2::new(Vector2::new(-50., 75.), Vector2::new(hp, 5.)),
                 if invincible {
-                    Color::LIGHT_GREEN
+                    Color::WHITE
                 } else {
                     Color::GREEN
                 },
@@ -367,11 +396,28 @@ impl ICharacterBody2D for Player {
             .get_node_as::<SideCamera>("SideCamera");
 
         match frame {
+            0..=5 if animation == "slide" => {
+                basic_collision.set_disabled(true);
+                strong_collision.set_disabled(true);
+                fall_collision.set_disabled(true);
+                earthquake_collision.set_disabled(true);
+
+                self.invincible = true;
+            }
+            6 if animation == "slide" => {
+                self.invincible = false;
+            }
             5..=6 | 9..=10 if animation == "basic_attack" => {
                 basic_collision.set_disabled(false);
+                strong_collision.set_disabled(true);
+                fall_collision.set_disabled(true);
+                earthquake_collision.set_disabled(true);
             }
             3..=4 if animation == "aura_attack" || animation == "dash_attack_finished" => {
+                basic_collision.set_disabled(true);
                 strong_collision.set_disabled(false);
+                fall_collision.set_disabled(true);
+                earthquake_collision.set_disabled(true);
 
                 if !self.aura_attack_shook {
                     self.aura_attack_shook = true;
@@ -379,9 +425,14 @@ impl ICharacterBody2D for Player {
                 }
             }
             _ if animation == "fall_attack" => {
+                basic_collision.set_disabled(true);
+                strong_collision.set_disabled(true);
                 fall_collision.set_disabled(false);
+                earthquake_collision.set_disabled(true);
             }
-            1..=2 if animation == "fall_attack_finished" => {
+            1 if animation == "fall_attack_finished" => {
+                basic_collision.set_disabled(true);
+                strong_collision.set_disabled(true);
                 fall_collision.set_disabled(true);
                 earthquake_collision.set_disabled(false);
             }
@@ -394,6 +445,11 @@ impl ICharacterBody2D for Player {
                 earthquake_collision.set_disabled(true);
             }
         }
+
+        let mut dash_attack_timer = self.base().get_node_as::<Timer>("DashAttackTimer");
+        let mut aura_attack_timer = self.base().get_node_as::<Timer>("AuraAttackTimer");
+        let mut fall_attack_timer = self.base().get_node_as::<Timer>("FallAttackTimer");
+        let mut climb_timer = self.base().get_node_as::<Timer>("ClimbTimer");
 
         if (self.left || self.right || self.fall_attack || (self.up && self.climbing))
             && !self.suffering
@@ -477,10 +533,16 @@ impl ICharacterBody2D for Player {
                 }
             }
 
-            if self.fall_attack && !self.fall_attacking {
+            if self.fall_attack
+                && !self.fall_attacking
+                && !self.fall_attack_delay
+                && !self.base().is_on_floor()
+            {
+                fall_attack_timer.start();
+
                 self.invincible = true;
                 self.fall_attacking = true;
-
+                self.fall_attack_delay = true;
                 self.play_animation("fall_attack");
             }
         }
@@ -505,10 +567,12 @@ impl ICharacterBody2D for Player {
                 self.play_animation("basic_attack");
             }
 
-            if self.dash_attack {
-                self.dash_attacking = true;
-                self.invincible = true;
+            if self.dash_attack && !self.dash_attack_delay {
+                dash_attack_timer.start();
 
+                self.dash_attacking = true;
+                self.dash_attack_delay = true;
+                self.invincible = true;
                 self.play_animation("dash_attack");
                 self.base()
                     .get_node_as::<CollisionShape2D>("BodyCollision")
@@ -516,9 +580,11 @@ impl ICharacterBody2D for Player {
             }
 
             // TODO: Finish aura_attack by adding sword aura.
-            if self.aura_attack {
-                self.aura_attacking = true;
+            if self.aura_attack && !self.aura_attack_delay {
+                aura_attack_timer.start();
 
+                self.aura_attacking = true;
+                self.aura_attack_delay = true;
                 self.play_animation("aura_attack");
             }
         }
@@ -547,13 +613,27 @@ impl ICharacterBody2D for Player {
             self.dashed = false;
 
             if self.fall_attacking {
+                let mut ground_crack = self
+                    .ground_crack
+                    .instantiate()
+                    .unwrap()
+                    .cast::<GroundCrack>();
+
                 self.fall_attacking = false;
                 self.fall_attack = false;
                 self.fall_attacking = false;
                 self.fall_attack_finishing = true;
 
-                camera.call("shake".into(), &[150.to_variant()]);
+                camera.call("shake".into(), &[75.to_variant()]);
                 self.play_animation("fall_attack_finished");
+
+                self.base()
+                    .get_parent()
+                    .unwrap()
+                    .add_child(ground_crack.clone());
+
+                ground_crack.set_position(self.base().get_position() + Vector2::new(0., 55.));
+                ground_crack.set_physics_process(true);
             }
         }
 
@@ -565,9 +645,24 @@ impl ICharacterBody2D for Player {
             animated.pause();
         }
 
-        if self.climb && self.climbable && !self.climbing {
-            self.climbing = true;
+        if self.climb
+            && self.climbable
+            && !self.climbing
+            && !self.climb_delay
+            && !self.suffering
+            && !self.sliding
+            && !self.dashing
+            && !self.basic_attacking
+            && !self.dash_attacking
+            && !self.dash_attack_finishing
+            && !self.aura_attacking
+            && !self.fall_attacking
+            && !self.fall_attack_finishing
+        {
+            climb_timer.start();
 
+            self.climbing = true;
+            self.climb_delay = true;
             self.play_animation("climb");
         }
 

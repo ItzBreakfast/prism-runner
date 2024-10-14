@@ -232,13 +232,18 @@ impl ICharacterBody2D for Enemy {
 
         match frame {
             3 if animation == "attack1" => {
+                upper_collision.set_disabled(true);
                 lower_collision.set_disabled(false);
+                attack2_collision.set_disabled(true);
             }
             4..=6 if animation == "attack1" => {
                 upper_collision.set_disabled(false);
                 lower_collision.set_disabled(true);
+                attack2_collision.set_disabled(true);
             }
             4..=5 if animation == "attack2" => {
+                upper_collision.set_disabled(true);
+                lower_collision.set_disabled(true);
                 attack2_collision.set_disabled(false);
 
                 if !self.attack2_shook {
@@ -348,6 +353,10 @@ impl ICharacterBody2D for Enemy {
 
         if self.base().is_on_floor() {
             self.falling = false;
+        }
+
+        if self.suffering {
+            velocity.x = velocity.x.lerp(0., 0.1);
         }
 
         self.base_mut().move_and_slide();

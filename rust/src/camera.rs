@@ -35,7 +35,9 @@ impl ICamera2D for SideCamera {
 
         let player_position = player.get_position() + Vector2::new(0., -200. + power as f32);
 
-        let target = if player.get("fall_attacking".into()).to::<bool>() {
+        let target = if player.get("dash_attacking".into()).to::<bool>()
+            || player.get("fall_attacking".into()).to::<bool>()
+        {
             player_position
         } else {
             position.lerp(player_position, 0.1)
@@ -44,6 +46,6 @@ impl ICamera2D for SideCamera {
 
         // TODO: Add camera works (Some are translation, some are rotation) as interation with Player and Enemy.
 
-        self.shake = (self.shake - 2).max(0);
+        self.shake = (self.shake - 3).max(0);
     }
 }
