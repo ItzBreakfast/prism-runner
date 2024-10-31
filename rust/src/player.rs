@@ -345,11 +345,14 @@ impl ICharacterBody2D for Player {
     fn input(&mut self, _event: Gd<InputEvent>) {
         let input = Input::singleton();
 
-        // 여기부터 작성 시작해주세요!!
-        
-        
-        
-        // 여기까지 작성하시면 됩니다!!
+        self.left = input.is_key_pressed(Key::LEFT);
+        self.right = input.is_key_pressed(Key::RIGHT);
+        self.jump = input.is_key_pressed(Key::SPACE);
+
+        self.slide = input.is_action_just_pressed("slide".into());
+        self.dash = input.is_action_just_pressed("dash".into());
+
+        self.basic_attack = input.is_action_just_pressed("basic_attack".into());
 
         self.dash_attack = input.is_action_just_pressed("dash_attack".into());
         self.aura_attack = input.is_action_just_pressed("aura_attack".into());
@@ -374,8 +377,31 @@ impl ICharacterBody2D for Player {
         let mut velocity = self.base().get_velocity();
         let mut animated = self.base().get_node_as::<AnimatedSprite2D>("Animation");
 
+        let mut basic_collision = self
+            .base()
+            .get_node_as::<Hitbox>("BasicAttack")
+            .get_node_as::<CollisionShape2D>("Collision");
+        let mut strong_collision = self
+            .base()
+            .get_node_as::<Hitbox>("StrongAttack")
+            .get_node_as::<CollisionShape2D>("Collision");
+        let mut fall_collision = self
+            .base()
+            .get_node_as::<Hitbox>("FallAttack")
+            .get_node_as::<CollisionShape2D>("Collision");
+        let mut earthquake_collision = self
+            .base()
+            .get_node_as::<Hitbox>("Earthquake")
+            .get_node_as::<CollisionShape2D>("Collision");
+
         if self.hp <= 0. {
+            basic_collision.set_disabled(true);
+            strong_collision.set_disabled(true);
+            fall_collision.set_disabled(true);
+            earthquake_collision.set_disabled(true);
+
             self.play_animation("death");
+
             return;
         } else {
             self.hp = (self.hp + 0.1).min(100.)
@@ -396,23 +422,6 @@ impl ICharacterBody2D for Player {
             animated.set_frame(0);
             self.play_animation("hit");
         }
-
-        let mut basic_collision = self
-            .base()
-            .get_node_as::<Hitbox>("BasicAttack")
-            .get_node_as::<CollisionShape2D>("Collision");
-        let mut strong_collision = self
-            .base()
-            .get_node_as::<Hitbox>("StrongAttack")
-            .get_node_as::<CollisionShape2D>("Collision");
-        let mut fall_collision = self
-            .base()
-            .get_node_as::<Hitbox>("FallAttack")
-            .get_node_as::<CollisionShape2D>("Collision");
-        let mut earthquake_collision = self
-            .base()
-            .get_node_as::<Hitbox>("Earthquake")
-            .get_node_as::<CollisionShape2D>("Collision");
 
         let animation = animated.get_animation().to_string();
         let frame = animated.get_frame();

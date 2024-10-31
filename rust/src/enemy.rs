@@ -182,8 +182,21 @@ impl ICharacterBody2D for Enemy {
         let mut velocity = self.base().get_velocity();
         let mut animated = self.base().get_node_as::<AnimatedSprite2D>("Animation");
 
+        let attack1 = self.base().get_node_as::<Hitbox>("Attack1");
+        let mut upper_collision = attack1.get_node_as::<CollisionShape2D>("UpperCollision");
+        let mut lower_collision = attack1.get_node_as::<CollisionShape2D>("LowerCollision");
+        let mut attack2_collision = self
+            .base()
+            .get_node_as::<Hitbox>("Attack2")
+            .get_node_as::<CollisionShape2D>("Collision");
+
         if self.hp <= 0. {
+            upper_collision.set_disabled(true);
+            lower_collision.set_disabled(true);
+            attack2_collision.set_disabled(true);
+
             self.play_animation("death");
+
             return;
         } else {
             self.hp = (self.hp + 0.05).min(100.)
@@ -206,14 +219,6 @@ impl ICharacterBody2D for Enemy {
         } else {
             0.
         };
-
-        let attack1 = self.base().get_node_as::<Hitbox>("Attack1");
-        let mut upper_collision = attack1.get_node_as::<CollisionShape2D>("UpperCollision");
-        let mut lower_collision = attack1.get_node_as::<CollisionShape2D>("LowerCollision");
-        let mut attack2_collision = self
-            .base()
-            .get_node_as::<Hitbox>("Attack2")
-            .get_node_as::<CollisionShape2D>("Collision");
 
         let player = self
             .base()
