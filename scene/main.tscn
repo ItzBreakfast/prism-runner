@@ -253,7 +253,8 @@ position = Vector2(5622.1, 180)
 
 [node name="BGM" type="AudioStreamPlayer" parent="."]
 stream = ExtResource("4_ga2r0")
-volume_db = -10.0
+volume_db = -15.0
+autoplay = true
 parameters/looping = true
 
 [node name="Prop" type="Node" parent="."]

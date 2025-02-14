@@ -2,19 +2,13 @@ use crate::camera::SideCamera;
 use godot::prelude::*;
 
 #[derive(GodotClass)]
-#[class(base=Node2D)]
+#[class(init, base=Node2D)]
 struct Map {
     base: Base<Node2D>,
 }
 
 #[godot_api]
 impl INode2D for Map {
-    fn init(base: Base<Node2D>) -> Self {
-        godot_print!("실행 가능합니다!");
-
-        Self { base }
-    }
-
     fn draw(&mut self) {
         self.base_mut().draw_rect(
             Rect2::new(Vector2::ZERO, Vector2::new(2000., 500.)),

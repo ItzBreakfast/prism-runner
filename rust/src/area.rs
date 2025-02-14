@@ -18,7 +18,7 @@ impl ClimbableArea {
             return;
         };
 
-        player.set("climbable".into(), &true.to_variant());
+        player.bind_mut().set_climbable(true);
     }
 
     #[func]
@@ -27,6 +27,6 @@ impl ClimbableArea {
             return;
         };
 
-        player.set("climbable".into(), &false.to_variant());
+        player.bind_mut().set_climbable(false);
     }
 }

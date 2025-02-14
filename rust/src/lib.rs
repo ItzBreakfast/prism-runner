@@ -1,6 +1,7 @@
 #![allow(overlapping_range_endpoints, unused)]
 
-use godot::prelude::*;
+use chrono::Local;
+use godot::{classes::Time, init::EditorRunBehavior, prelude::*};
 
 // TODO: Refactory the code (player.rs above all) with following methods:
 //         - Put out some conditions from if statements using variable as category.
@@ -19,4 +20,10 @@ mod player;
 struct PrismRunner;
 
 #[gdextension]
-unsafe impl ExtensionLibrary for PrismRunner {}
+unsafe impl ExtensionLibrary for PrismRunner {
+    fn min_level() -> InitLevel {
+        godot_print!("{}\tbuild successful.", Local::now().format("%H:%M:%S"));
+
+        InitLevel::Scene
+    }
+}

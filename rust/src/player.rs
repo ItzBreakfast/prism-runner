@@ -1,3 +1,6 @@
+use crate::{
+    aura::SwordAura, camera::SideCamera, crack::GroundCrack, enemy::Enemy, hitbox::Hitbox,
+};
 use godot::{
     classes::{
         AnimatedSprite2D, CharacterBody2D, CollisionShape2D, ICharacterBody2D, InputEvent,
@@ -5,10 +8,6 @@ use godot::{
     },
     global::{move_toward, Key},
     prelude::*,
-};
-
-use crate::{
-    aura::SwordAura, camera::SideCamera, crack::GroundCrack, enemy::Enemy, hitbox::Hitbox,
 };
 
 #[derive(GodotClass)]
@@ -82,21 +81,20 @@ impl Player {
     #[signal]
     fn flip();
 
-    fn play_animation(&mut self, name: impl Into<String>) {
+    fn play_animation(&mut self, new: &str) {
         let mut animated = self.base().get_node_as::<AnimatedSprite2D>("Animation");
 
         let old = animated.get_animation().to_string();
-        let new: String = name.into();
 
         if old != new {
-            self.on_animation_changed(old, new.clone());
+            self.on_animation_changed(&old, new);
 
-            animated.set_animation(new.into());
+            animated.set_animation(new);
             animated.play();
         }
     }
 
-    fn on_animation_changed(&mut self, old: String, new: String) {
+    fn on_animation_changed(&mut self, old: &str, new: &str) {
         let mut animated = self.base().get_node_as::<AnimatedSprite2D>("Animation");
 
         if old == "slide" {
@@ -206,18 +204,16 @@ impl Player {
             return;
         };
 
-        if !body.get("invincible".into()).to::<bool>() {
-            let resistance = body.get("resistance".into()).to::<bool>();
-            let name: StringName = "hp".into();
-            let hp: f32 = body.get(name.clone()).to();
+        let hp: f32 = body.bind().get_hp();
 
-            body.set(
-                name,
-                &(hp - if resistance { 10. } else { 20. }).to_variant(),
-            );
+        if !body.bind().get_invincible() && hp > 0. {
+            let resistance = body.bind().get_resistance();
+
+            body.bind_mut()
+                .set_hp(hp - if resistance { 7.5 } else { 15. });
 
             if !resistance {
-                body.set("hit".into(), &true.to_variant());
+                body.bind_mut().set_hit(true);
                 body.set_velocity(Vector2::new(0., -400.));
             }
         }
@@ -229,18 +225,16 @@ impl Player {
             return;
         };
 
-        if !body.get("invincible".into()).to::<bool>() {
-            let resistance = body.get("resistance".into()).to::<bool>();
-            let name: StringName = "hp".into();
-            let hp: f32 = body.get(name.clone()).to();
+        let hp: f32 = body.bind().get_hp();
 
-            body.set(
-                name,
-                &(hp - if resistance { 15. } else { 30. }).to_variant(),
-            );
+        if !body.bind().get_invincible() && hp > 0. {
+            let resistance = body.bind().get_resistance();
+
+            body.bind_mut()
+                .set_hp(hp - if resistance { 25. } else { 35. });
 
             if !resistance {
-                body.set("hit".into(), &true.to_variant());
+                body.bind_mut().set_hit(true);
                 body.set_velocity(Vector2::new(0., 400.));
             }
         }
@@ -252,18 +246,16 @@ impl Player {
             return;
         };
 
-        if !body.get("invincible".into()).to::<bool>() {
-            let resistance = body.get("resistance".into()).to::<bool>();
-            let name: StringName = "hp".into();
-            let hp: f32 = body.get(name.clone()).to();
+        let hp: f32 = body.bind().get_hp();
 
-            body.set(
-                name,
-                &(hp - if resistance { 15. } else { 30. }).to_variant(),
-            );
+        if !body.bind().get_invincible() && hp > 0. {
+            let resistance = body.bind().get_resistance();
+
+            body.bind_mut()
+                .set_hp(hp - if resistance { 25. } else { 35. });
 
             if !resistance {
-                body.set("hit".into(), &true.to_variant());
+                body.bind_mut().set_hit(true);
                 body.set_velocity(Vector2::new(0., 400.));
             }
         }
@@ -275,15 +267,13 @@ impl Player {
             return;
         };
 
-        if !body.get("invincible".into()).to::<bool>() {
-            let resistance = body.get("resistance".into()).to::<bool>();
-            let name: StringName = "hp".into();
-            let hp: f32 = body.get(name.clone()).to();
+        let hp: f32 = body.bind().get_hp();
 
-            body.set(
-                name,
-                &(hp - if resistance { 25. } else { 50. }).to_variant(),
-            );
+        if !body.bind().get_invincible() && hp > 0. {
+            let resistance = body.bind().get_resistance();
+
+            body.bind_mut()
+                .set_hp(hp - if resistance { 30. } else { 50. });
 
             if !resistance {
                 let velocity = if self.base().get_position().x - body.get_position().x < 0. {
@@ -292,7 +282,7 @@ impl Player {
                     -1000.
                 };
 
-                body.set("hit".into(), &true.to_variant());
+                body.bind_mut().set_hit(true);
                 body.set_velocity(Vector2::new(velocity, -1500.));
             }
         }
@@ -349,17 +339,17 @@ impl ICharacterBody2D for Player {
         self.right = input.is_key_pressed(Key::RIGHT);
         self.jump = input.is_key_pressed(Key::SPACE);
 
-        self.slide = input.is_action_just_pressed("slide".into());
-        self.dash = input.is_action_just_pressed("dash".into());
+        self.slide = input.is_action_just_pressed("slide");
+        self.dash = input.is_action_just_pressed("dash");
 
-        self.basic_attack = input.is_action_just_pressed("basic_attack".into());
+        self.basic_attack = input.is_action_just_pressed("basic_attack");
 
-        self.dash_attack = input.is_action_just_pressed("dash_attack".into());
-        self.aura_attack = input.is_action_just_pressed("aura_attack".into());
-        self.fall_attack = input.is_action_just_pressed("fall_attack".into());
+        self.dash_attack = input.is_action_just_pressed("dash_attack");
+        self.aura_attack = input.is_action_just_pressed("aura_attack");
+        self.fall_attack = input.is_action_just_pressed("fall_attack");
 
         self.up = input.is_key_pressed(Key::UP);
-        self.climb = input.is_action_just_pressed("climb".into());
+        self.climb = input.is_action_just_pressed("climb");
 
         if self.slide || self.dash || self.basic_attack || self.aura_attack || self.climb {
             self.dash_finishing = false;
@@ -370,7 +360,7 @@ impl ICharacterBody2D for Player {
         self.base_mut().queue_redraw();
 
         let gravity = ProjectSettings::singleton()
-            .get_setting("physics/2d/default_gravity".into())
+            .get_setting("physics/2d/default_gravity")
             .to::<f32>()
             / 35.;
 
@@ -394,19 +384,6 @@ impl ICharacterBody2D for Player {
             .get_node_as::<Hitbox>("Earthquake")
             .get_node_as::<CollisionShape2D>("Collision");
 
-        if self.hp <= 0. {
-            basic_collision.set_disabled(true);
-            strong_collision.set_disabled(true);
-            fall_collision.set_disabled(true);
-            earthquake_collision.set_disabled(true);
-
-            self.play_animation("death");
-
-            return;
-        } else {
-            self.hp = (self.hp + 0.1).min(100.)
-        }
-
         velocity.y = if self.fall_attacking {
             (velocity.y + 300. + gravity * 1.5 + delta as f32).min(1200.)
         } else if !self.base().is_on_floor() && !self.climbing {
@@ -414,6 +391,23 @@ impl ICharacterBody2D for Player {
         } else {
             0.
         };
+
+        if self.hp <= 0. {
+            velocity.x = velocity.x.lerp(0., 0.1);
+
+            basic_collision.set_disabled(true);
+            strong_collision.set_disabled(true);
+            fall_collision.set_disabled(true);
+            earthquake_collision.set_disabled(true);
+
+            self.base_mut().move_and_slide();
+            self.base_mut().set_velocity(velocity);
+            self.play_animation("death");
+
+            return;
+        } else {
+            self.hp = (self.hp + 0.1).min(100.)
+        }
 
         if self.hit {
             self.hit = false;
@@ -458,7 +452,7 @@ impl ICharacterBody2D for Player {
 
                 if !self.strong_attack_shook {
                     self.strong_attack_shook = true;
-                    camera.call("shake".into(), &[30.to_variant()]);
+                    camera.bind_mut().shake(30);
                 }
 
                 if !self.sword_aura_spawned && animation == "aura_attack" {
@@ -466,12 +460,9 @@ impl ICharacterBody2D for Player {
 
                     self.sword_aura_spawned = true;
 
-                    self.base()
-                        .get_parent()
-                        .unwrap()
-                        .add_child(sword_aura.clone());
+                    self.base().get_parent().unwrap().add_child(&sword_aura);
 
-                    sword_aura.set("flipped".into(), &self.flipped.to_variant());
+                    sword_aura.bind_mut().set_flipped(self.flipped);
                     sword_aura.set_scale(Vector2::new(if self.flipped { -1. } else { 1. }, 1.));
 
                     sword_aura.set_position(self.base().get_position() + Vector2::new(50., 0.));
@@ -523,7 +514,7 @@ impl ICharacterBody2D for Player {
                 velocity.x = -self.speed * if self.climbing { 0.5 } else { 1. };
                 animated.set_flip_h(true);
                 if !self.flipped {
-                    self.base_mut().emit_signal("flip".into(), &[]);
+                    self.base_mut().emit_signal("flip", &[]);
                     self.flipped = true;
                 }
 
@@ -540,7 +531,7 @@ impl ICharacterBody2D for Player {
                 velocity.x = self.speed * if self.climbing { 0.5 } else { 1. };
                 animated.set_flip_h(false);
                 if self.flipped {
-                    self.base_mut().emit_signal("flip".into(), &[]);
+                    self.base_mut().emit_signal("flip", &[]);
                     self.flipped = false;
                 }
 
@@ -678,13 +669,10 @@ impl ICharacterBody2D for Player {
                 self.fall_attacking = false;
                 self.fall_attack_finishing = true;
 
-                camera.call("shake".into(), &[75.to_variant()]);
+                camera.bind_mut().shake(75);
                 self.play_animation("fall_attack_finished");
 
-                self.base()
-                    .get_parent()
-                    .unwrap()
-                    .add_child(ground_crack.clone());
+                self.base().get_parent().unwrap().add_child(&ground_crack);
 
                 ground_crack.set_position(self.base().get_position() + Vector2::new(0., 55.));
                 ground_crack.set_physics_process(true);

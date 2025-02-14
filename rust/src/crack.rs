@@ -46,7 +46,7 @@ impl INode2D for GroundCrack {
             modulate.set_a8(opacity - 1);
             sprite.set_modulate(modulate);
         } else {
-            self.base_mut().call_deferred("queue_free".into(), &[]);
+            self.base_mut().call_deferred("queue_free", &[]);
         }
     }
 }

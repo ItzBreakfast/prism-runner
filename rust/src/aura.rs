@@ -29,18 +29,15 @@ impl SwordAura {
             return;
         };
 
-        if !body.get("invincible".into()).to::<bool>() {
-            let resistance = body.get("resistance".into()).to::<bool>();
-            let name: StringName = "hp".into();
-            let hp: f32 = body.get(name.clone()).to();
+        if !body.bind().get_invincible() {
+            let resistance = body.bind().get_resistance();
+            let hp: f32 = body.bind().get_hp();
 
-            body.set(
-                name,
-                &(hp - if resistance { 15. } else { 30. }).to_variant(),
-            );
+            body.bind_mut()
+                .set_hp(hp - if resistance { 20. } else { 40. });
 
             if !resistance {
-                body.set("hit".into(), &true.to_variant());
+                body.bind_mut().set_hit(true);
             }
         }
     }
@@ -68,7 +65,7 @@ impl INode2D for SwordAura {
         let opacity = modulate.a8();
 
         if (opacity as i32 - 30) < 0 {
-            self.base_mut().call_deferred("queue_free".into(), &[]);
+            self.base_mut().call_deferred("queue_free", &[]);
         } else if opacity > 0 {
             modulate.set_a8(opacity - 30);
             sprite.set_modulate(modulate);
